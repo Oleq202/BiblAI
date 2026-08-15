@@ -8,3 +8,4 @@ pyrightconfig.json
 backend/data/processed/chunks.jsonl
 qdrant
 __pycache__
+llm_cache

@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import hashlib
 import atexit
 from pathlib import Path
 
@@ -19,6 +20,9 @@ QDRANT_DIR = BASE_DIR / "data" / "qdrant"
 COLLECTION_NAME = "biblia_tysiaclecia"
 EMBED_MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 GEMINI_MODEL = "models/gemini-3.5-flash-lite"
+
+CACHE_DIR = BASE_DIR / "data" / "llm_cache"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 if "GEMINI_API_KEY" not in os.environ:
     env_file = BASE_DIR / ".env"
@@ -92,7 +96,18 @@ Nigdy nie wymyślaj wersetów ani cytatów.
 wewnętrznie."""
 
 
-def classify_support(statement, retrieved_chunks, max_retries=3):
+def _cache_key(statement, retrieved_chunks):
+    chunk_ids = sorted(c["chunk_id"] for c in retrieved_chunks)
+    raw = statement + "||" + "|".join(chunk_ids) + "||" + GEMINI_MODEL
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def classify_support(statement, retrieved_chunks, max_retries=3, use_cache=True):
+    cache_path = CACHE_DIR / f"{_cache_key(statement, retrieved_chunks)}.json"
+
+    if use_cache and cache_path.exists():
+        return StatementVerdict.model_validate_json(cache_path.read_text(encoding="utf-8"))
+
     context = "\n\n".join(
         f"[{chunk['verse_refs']}]\n{chunk['text']}" for chunk in retrieved_chunks
     )
@@ -121,13 +136,16 @@ niewspomniane wprost w tych fragmentach."""
                 ),
             )
             result = json.loads(response.text)
-            return StatementVerdict(
+            verdict = StatementVerdict(
                 statement=statement,
                 verdict=Verdict(result["verdict"]),
                 confidence=result["confidence"],
                 citations=result["citations"],
                 reasoning=result["reasoning"],
             )
+            if use_cache:
+                cache_path.write_text(verdict.model_dump_json(), encoding="utf-8")
+            return verdict
         except Exception as e:
             last_error = e
             wait = 2 ** attempt
