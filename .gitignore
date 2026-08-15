@@ -1,0 +1,8 @@
+.venv/
+backend/.venv/
+backend/data/raw/
+pyrefly.json
+pyrightconfig.json
+.vscode/
+backend/src/ingestion/__pycache__
+backend/data/processed/chunks.jsonl
