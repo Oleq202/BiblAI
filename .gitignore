@@ -6,3 +6,4 @@ pyrightconfig.json
 .vscode/
 backend/src/ingestion/__pycache__
 backend/data/processed/chunks.jsonl
+qdrant
