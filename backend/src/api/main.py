@@ -38,13 +38,21 @@ class VerifyRequest(BaseModel):
 class HealthResponse(BaseModel):
     status: Literal["ok"]
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def serve_index():
     return FileResponse(FRONTEND_DIR / "index.html")
 
-@app.get("/health", response_model=HealthResponse)
+@app.api_route("/health", methods=["GET", "HEAD"], response_model=HealthResponse)
 def health():
     return {"status": "ok"}
+
+@app.api_route("/favicon.ico", methods=["GET", "HEAD"])
+def favicon():
+    fav = FRONTEND_DIR / "public" / "favicon.ico"
+    if fav.exists():
+        return FileResponse(fav)
+    return FileResponse(FRONTEND_DIR / "index.html")
+
 
 @app.post("/verify", response_model=StatementVerdict)
 def verify(request: VerifyRequest):
