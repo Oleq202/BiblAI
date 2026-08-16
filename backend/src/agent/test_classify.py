@@ -10,7 +10,7 @@ try:
 except (ImportError, ValueError):
     from .tools import retrieve, classify_support
 
-statement = "Jezus jest Bogiem"
+statement = "Antykoncepcja jest grzechem" 
 chunks = retrieve(statement, top_k=5)
 verdict = classify_support(statement, chunks)
 
