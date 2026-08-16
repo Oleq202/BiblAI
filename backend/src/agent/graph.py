@@ -12,7 +12,7 @@ except (ImportError, ValueError):
 RETRIEVE_TOP_K = 20
 RERANK_TOP_K = 5
 BROADER_RETRIEVE_TOP_K = 30
-RELEVANCE_SCORE_THRESHOLD = 0.0
+RELEVANCE_SCORE_THRESHOLD = 0.35
 
 
 class AgentState(TypedDict):
@@ -25,8 +25,8 @@ class AgentState(TypedDict):
 
 def retrieve_and_rerank_node(state):
     top_k = RETRIEVE_TOP_K if state.get("retrieval_attempts", 0) == 0 else BROADER_RETRIEVE_TOP_K
-    candidates = retrieve(state["statement"], top_k=top_k)
-    reranked = rerank(state["statement"], candidates)
+    candidates, scores = retrieve(state["statement"], top_k=top_k, return_scores=True)
+    reranked = rerank(state["statement"], candidates, scores=scores)
 
     top_chunks = [chunk for chunk, score in reranked[:RERANK_TOP_K]]
     top_scores = [float(score) for chunk, score in reranked[:RERANK_TOP_K]]
@@ -39,9 +39,12 @@ def retrieve_and_rerank_node(state):
     }
 
 
+
 def check_relevance(state):
+    from tools import USE_CROSS_ENCODER
+    threshold = 0.0 if USE_CROSS_ENCODER else 0.35
     best_score = max(state["rerank_scores"]) if state["rerank_scores"] else -999
-    if best_score < RELEVANCE_SCORE_THRESHOLD and state.get("retrieval_attempts", 0) < 2:
+    if best_score < threshold and state.get("retrieval_attempts", 0) < 2:
         return "broaden"
     return "classify"
 

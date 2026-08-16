@@ -5,10 +5,17 @@ import hashlib
 import atexit
 from pathlib import Path
 
+import torch
 from google import genai
 from google.genai import types
 from qdrant_client import QdrantClient
-from sentence_transformers import SentenceTransformer, CrossEncoder
+from sentence_transformers import SentenceTransformer
+
+torch.set_num_threads(1)
+try:
+    torch.set_num_interop_threads(1)
+except RuntimeError:
+    pass
 
 try:
     from .schemas import StatementVerdict, Verdict
@@ -20,6 +27,7 @@ QDRANT_DIR = BASE_DIR / "data" / "qdrant"
 COLLECTION_NAME = "biblia_tysiaclecia"
 EMBED_MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 GEMINI_MODEL = "models/gemini-3.5-flash-lite"
+USE_CROSS_ENCODER = os.environ.get("USE_CROSS_ENCODER", "false").lower() == "true"
 RERANK_MODEL_NAME = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
 
 CACHE_DIR = BASE_DIR / "data" / "llm_cache"
@@ -64,6 +72,7 @@ def _get_qdrant():
 def _get_reranker():
     global _reranker
     if _reranker is None:
+        from sentence_transformers import CrossEncoder
         _reranker = CrossEncoder(RERANK_MODEL_NAME)
     return _reranker
 
@@ -71,7 +80,8 @@ def _get_reranker():
 def retrieve(query, top_k=5, return_scores=False):
     embed_model = _get_embed_model()
     qdrant = _get_qdrant()
-    embedding = embed_model.encode([query]).tolist()[0]
+    with torch.inference_mode():
+        embedding = embed_model.encode([query], show_progress_bar=False).tolist()[0]
     results = qdrant.query_points(
         collection_name=COLLECTION_NAME,
         query=embedding,
@@ -84,12 +94,18 @@ def retrieve(query, top_k=5, return_scores=False):
     return payloads
 
 
-def rerank(query, chunks):
-    reranker = _get_reranker()
-    pairs = [(query, chunk["text"]) for chunk in chunks]
-    scores = reranker.predict(pairs)
-    reranked = sorted(zip(chunks, scores), key=lambda x: x[1], reverse=True)
-    return reranked
+def rerank(query, chunks, scores=None):
+    if USE_CROSS_ENCODER:
+        reranker = _get_reranker()
+        pairs = [(query, chunk["text"]) for chunk in chunks]
+        scores = reranker.predict(pairs)
+        reranked = sorted(zip(chunks, scores), key=lambda x: x[1], reverse=True)
+        return reranked
+    
+    if scores is not None and len(scores) == len(chunks):
+        return sorted(zip(chunks, scores), key=lambda x: x[1], reverse=True)
+    return [(chunk, 1.0) for chunk in chunks]
+
 
 
 VERDICT_RESPONSE_SCHEMA = {
