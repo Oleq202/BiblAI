@@ -4,6 +4,8 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -18,6 +20,11 @@ app = FastAPI(
     version="0.1.0",
 )
 
+FRONTEND_DIR = BASE_DIR.parent / "frontend"
+if (FRONTEND_DIR / "public").exists():
+    app.mount("/public", StaticFiles(directory=str(FRONTEND_DIR / "public")), name="public")
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,6 +37,10 @@ class VerifyRequest(BaseModel):
 
 class HealthResponse(BaseModel):
     status: Literal["ok"]
+
+@app.get("/")
+def serve_index():
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 @app.get("/health", response_model=HealthResponse)
 def health():

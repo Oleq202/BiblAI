@@ -9,3 +9,4 @@ backend/data/processed/chunks.jsonl
 __pycache__
 llm_cache
 backend/eval/results
+backend/data/qdrant/.lock
