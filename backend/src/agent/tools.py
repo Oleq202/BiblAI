@@ -8,7 +8,7 @@ from pathlib import Path
 from google import genai
 from google.genai import types
 from qdrant_client import QdrantClient
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 
 try:
     from .schemas import StatementVerdict, Verdict
@@ -20,34 +20,76 @@ QDRANT_DIR = BASE_DIR / "data" / "qdrant"
 COLLECTION_NAME = "biblia_tysiaclecia"
 EMBED_MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 GEMINI_MODEL = "models/gemini-3.5-flash-lite"
+RERANK_MODEL_NAME = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
 
 CACHE_DIR = BASE_DIR / "data" / "llm_cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-if "GEMINI_API_KEY" not in os.environ:
-    env_file = BASE_DIR / ".env"
-    if env_file.exists():
-        for line in env_file.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, v = line.split("=", 1)
-                os.environ[k.strip()] = v.strip().strip("'\"")
-
-_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-
-_embed_model = SentenceTransformer(EMBED_MODEL_NAME)
-_qdrant = QdrantClient(path=str(QDRANT_DIR))
-atexit.register(_qdrant.close)
+_client = None
+_embed_model = None
+_qdrant = None
+_reranker = None
 
 
-def retrieve(query, top_k=5):
-    embedding = _embed_model.encode([query]).tolist()[0]
-    results = _qdrant.query_points(
+def _get_client():
+    global _client
+    if _client is None:
+        if "GEMINI_API_KEY" not in os.environ:
+            env_file = BASE_DIR / ".env"
+            if env_file.exists():
+                for line in env_file.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        os.environ[k.strip()] = v.strip().strip("'\"")
+        _client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+    return _client
+
+
+def _get_embed_model():
+    global _embed_model
+    if _embed_model is None:
+        _embed_model = SentenceTransformer(EMBED_MODEL_NAME)
+    return _embed_model
+
+
+def _get_qdrant():
+    global _qdrant
+    if _qdrant is None:
+        _qdrant = QdrantClient(path=str(QDRANT_DIR))
+        atexit.register(_qdrant.close)
+    return _qdrant
+
+
+def _get_reranker():
+    global _reranker
+    if _reranker is None:
+        _reranker = CrossEncoder(RERANK_MODEL_NAME)
+    return _reranker
+
+
+def retrieve(query, top_k=5, return_scores=False):
+    embed_model = _get_embed_model()
+    qdrant = _get_qdrant()
+    embedding = embed_model.encode([query]).tolist()[0]
+    results = qdrant.query_points(
         collection_name=COLLECTION_NAME,
         query=embedding,
         limit=top_k,
     ).points
-    return [point.payload for point in results]
+    payloads = [point.payload for point in results]
+    if return_scores:
+        scores = [point.score for point in results]
+        return payloads, scores
+    return payloads
+
+
+def rerank(query, chunks):
+    reranker = _get_reranker()
+    pairs = [(query, chunk["text"]) for chunk in chunks]
+    scores = reranker.predict(pairs)
+    reranked = sorted(zip(chunks, scores), key=lambda x: x[1], reverse=True)
+    return reranked
 
 
 VERDICT_RESPONSE_SCHEMA = {
@@ -93,7 +135,10 @@ ani "contradicted" tylko dlatego, że temat jest powiązany.
 - Cytuj TYLKO fragmenty rzeczywiście obecne w podanym kontekście. \
 Nigdy nie wymyślaj wersetów ani cytatów.
 - confidence powinno być niższe, gdy dowody są pośrednie lub sprzeczne \
-wewnętrznie."""
+wewnętrznie.
+- Jeśli odpowiedź wymaga fragmentu, którego NIE MA w podanym kontekście, \
+NIE wspominaj, gdzie taki fragment by się znajdował ani co by powiedział - \
+po prostu stwierdź, że dostarczony kontekst nie zawiera odpowiedzi."""
 
 
 def _cache_key(statement, retrieved_chunks):
@@ -102,7 +147,7 @@ def _cache_key(statement, retrieved_chunks):
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-def classify_support(statement, retrieved_chunks, max_retries=3, use_cache=True):
+def classify_support(statement, retrieved_chunks, max_retries=5, use_cache=True):
     cache_path = CACHE_DIR / f"{_cache_key(statement, retrieved_chunks)}.json"
 
     if use_cache and cache_path.exists():
@@ -125,7 +170,8 @@ niewspomniane wprost w tych fragmentach."""
     last_error = None
     for attempt in range(max_retries):
         try:
-            response = _client.models.generate_content(
+            client = _get_client()
+            response = client.models.generate_content(
                 model=GEMINI_MODEL,
                 contents=user_message,
                 config=types.GenerateContentConfig(
@@ -148,8 +194,11 @@ niewspomniane wprost w tych fragmentach."""
             return verdict
         except Exception as e:
             last_error = e
-            wait = 2 ** attempt
-            print(f"  attempt {attempt + 1} failed ({e.__class__.__name__}: {e}), retrying in {wait}s...")
+            err_msg = str(e)
+            if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                wait = max(25, 15 * (attempt + 1))
+            else:
+                wait = 2 ** attempt
             time.sleep(wait)
 
     raise last_error

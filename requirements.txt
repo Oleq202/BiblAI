@@ -3,3 +3,4 @@ qdrant-client
 sentence-transformers
 fastapi
 google.genai
+langgraph
