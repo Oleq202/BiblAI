@@ -3,10 +3,10 @@ from typing import TypedDict
 from langgraph.graph import StateGraph, END
 
 try:
-    from .tools import retrieve, rerank, classify_support
+    from .tools import retrieve, rerank, classify_support, USE_CROSS_ENCODER
     from .schemas import StatementVerdict
 except (ImportError, ValueError):
-    from tools import retrieve, rerank, classify_support
+    from tools import retrieve, rerank, classify_support, USE_CROSS_ENCODER
     from schemas import StatementVerdict
 
 RETRIEVE_TOP_K = 20
@@ -41,7 +41,6 @@ def retrieve_and_rerank_node(state):
 
 
 def check_relevance(state):
-    from tools import USE_CROSS_ENCODER
     threshold = 0.0 if USE_CROSS_ENCODER else 0.35
     best_score = max(state["rerank_scores"]) if state["rerank_scores"] else -999
     if best_score < threshold and state.get("retrieval_attempts", 0) < 2:

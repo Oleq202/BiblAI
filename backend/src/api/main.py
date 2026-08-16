@@ -57,6 +57,8 @@ def verify(request: VerifyRequest):
     try:
         verdict = verify_statement(statement)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=502, detail=f"Verification failed: {e}")
 
     return verdict
