@@ -1,0 +1,31 @@
+{"id": "sup_01", "statement": "Bóg stworzył niebo i ziemię.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Rdz 1"}
+{"id": "sup_02", "statement": "Kain zabił swojego brata Abla.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Rdz 4"}
+{"id": "sup_03", "statement": "Jezus zamienił wodę w wino na weselu w Kanie.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "J 2"}
+{"id": "sup_04", "statement": "Mojżesz wyprowadził Izraelitów z Egiptu.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Wj"}
+{"id": "sup_05", "statement": "Dawid pokonał Goliata.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "1 Sm 17"}
+
+{"id": "con_01", "statement": "Jezus urodził się w Rzymie.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Łk 2"}
+{"id": "con_02", "statement": "Bóg stworzył świat w ciągu jednego dnia.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Rdz 1"}
+{"id": "con_03", "statement": "Kain był starszym bratem, którego zabił Abel.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Rdz 4"}
+{"id": "con_04", "statement": "Noe zbudował arkę, by przetrwać pożar.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Rdz 6"}
+{"id": "con_05", "statement": "Piotr nigdy nie zaparł się Jezusa.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Mt 26"}
+
+{"id": "int_01", "statement": "Antykoncepcja jest grzechem.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_02", "statement": "Kara śmierci jest zgodna z wolą Boga.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_03", "statement": "Chrzest niemowląt jest wymagany przez Biblię.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_04", "statement": "Biblia zakazuje spożywania alkoholu.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_05", "statement": "Kobiety nie mogą pełnić funkcji przywódczych w Kościele.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+
+{"id": "cmp_01", "statement": "Jezus uzdrawiał chorych i wypędzał złe duchy, co w tradycyjnym rozumieniu jest niemożliwe dla człowieka.", "category": "compound", "expected_verdict": "not_directly_stated"}
+{"id": "cmp_02", "statement": "Salomon był mądrym królem, który nigdy nie zgrzeszył.", "category": "compound", "expected_verdict": "not_directly_stated"}
+{"id": "cmp_03", "statement": "Dawid napisał wszystkie Psalmy jako doskonały wzór pobożności.", "category": "compound", "expected_verdict": "not_directly_stated"}
+
+{"id": "irr_01", "statement": "Kwantowa mechanika silnika odrzutowego jest opisana w Biblii.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+{"id": "irr_02", "statement": "Internet został przewidziany przez proroków biblijnych.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+{"id": "irr_03", "statement": "Biblia opisuje zasady gry w szachy.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+
+{"id": "obs_02", "statement": "Ozeasz poślubił nierządnicę na polecenie Boga.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "Oz 1"}
+{"id": "obs_03", "statement": "Elizeusz sprawił, że siekiera wypłynęła na powierzchnię wody.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "2 Krl 6"}
+
+{"id": "trk_01", "statement": "Bóg powiedział, że miłość do pieniędzy jest źródłem wszelkiego dobra.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "1 Tm 6"}
+{"id": "trk_02", "statement": "Wąska brama prowadzi na zatracenie, a szeroka do życia.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Mt 7"}
