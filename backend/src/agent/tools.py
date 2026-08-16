@@ -3,19 +3,12 @@ import json
 import time
 import hashlib
 import atexit
+import urllib.request
 from pathlib import Path
 
-import torch
 from google import genai
 from google.genai import types
 from qdrant_client import QdrantClient
-from sentence_transformers import SentenceTransformer
-
-torch.set_num_threads(1)
-try:
-    torch.set_num_interop_threads(1)
-except RuntimeError:
-    pass
 
 try:
     from .schemas import StatementVerdict, Verdict
@@ -54,11 +47,57 @@ def _get_client():
     return _client
 
 
+def _encode_query_hf(query: str, token: str) -> list[float]:
+    model_id = f"sentence-transformers/{EMBED_MODEL_NAME}" if not EMBED_MODEL_NAME.startswith("sentence-transformers/") else EMBED_MODEL_NAME
+    url = f"https://router.huggingface.co/hf-inference/models/{model_id}"
+    payload = json.dumps({
+        "inputs": query,
+        "options": {"wait_for_model": True, "use_cache": True}
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=15) as response:
+        result = json.loads(response.read().decode("utf-8"))
+        if isinstance(result, list):
+            if result and isinstance(result[0], list):
+                return result[0]
+            return result
+        raise ValueError(f"Unexpected response from HF inference: {result}")
+
+
+
 def _get_embed_model():
     global _embed_model
     if _embed_model is None:
+        import torch
+        torch.set_num_threads(1)
+        try:
+            torch.set_num_interop_threads(1)
+        except RuntimeError:
+            pass
+        from sentence_transformers import SentenceTransformer
         _embed_model = SentenceTransformer(EMBED_MODEL_NAME)
     return _embed_model
+
+
+def _get_embedding(query: str) -> list[float]:
+    hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY")
+    if hf_token:
+        try:
+            return _encode_query_hf(query, hf_token)
+        except Exception as e:
+            print(f"HF API inference error: {e}, falling back to local embedder.")
+    
+    embed_model = _get_embed_model()
+    import torch
+    with torch.inference_mode():
+        return embed_model.encode([query], show_progress_bar=False).tolist()[0]
 
 
 def _get_qdrant():
@@ -78,10 +117,8 @@ def _get_reranker():
 
 
 def retrieve(query, top_k=5, return_scores=False):
-    embed_model = _get_embed_model()
+    embedding = _get_embedding(query)
     qdrant = _get_qdrant()
-    with torch.inference_mode():
-        embedding = embed_model.encode([query], show_progress_bar=False).tolist()[0]
     results = qdrant.query_points(
         collection_name=COLLECTION_NAME,
         query=embedding,
@@ -92,6 +129,7 @@ def retrieve(query, top_k=5, return_scores=False):
         scores = [point.score for point in results]
         return payloads, scores
     return payloads
+
 
 
 def rerank(query, chunks, scores=None):
@@ -212,7 +250,7 @@ niewspomniane wprost w tych fragmentach."""
             last_error = e
             err_msg = str(e)
             if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
-                wait = max(25, 15 * (attempt + 1))
+                wait = 2 * (attempt + 1)
             else:
                 wait = 2 ** attempt
             time.sleep(wait)
