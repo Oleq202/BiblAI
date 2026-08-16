@@ -505,8 +505,16 @@
                 });
 
                 if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.detail || `Błąd serwera (${response.status})`);
+                    let errorMessage = `Błąd serwera (${response.status})`;
+                    try {
+                        const errData = await response.json();
+                        if (errData && errData.detail) {
+                            errorMessage = errData.detail;
+                        }
+                    } catch (_) {
+                        // Response was not JSON (e.g. 404/502 HTML error page from host)
+                    }
+                    throw new Error(errorMessage);
                 }
 
                 const data = await response.json();
