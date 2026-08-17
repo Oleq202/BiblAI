@@ -1,13 +1,11 @@
 # BiblAI
 ### Claim Verification Engine with Agentic RAG and LangGraph
 
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![LangGraph](https://img.shields.io/badge/LangGraph-Agentic_Orchestration-FF6F00?style=for-the-badge&logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Production_API-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Qdrant](https://img.shields.io/badge/Qdrant-Vector_Database-DC244C?style=for-the-badge&logo=qdrant&logoColor=white)](https://qdrant.tech/)
-[![Google Gemini](https://img.shields.io/badge/Google_Gemini-LLM_%26_Structured_Output-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
-[![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![Backend](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Vector DB](https://img.shields.io/badge/Vector_DB-Qdrant-DC244C?logo=qdrant&logoColor=white)](https://qdrant.tech/)
+[![Orchestration](https://img.shields.io/badge/Orchestration-LangGraph-FF6F00?logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
+[![LLM](https://img.shields.io/badge/LLM-Gemini_3.5_Flash-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
+[![Deployment](https://img.shields.io/badge/Deployment-Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
 ---
 
@@ -32,16 +30,34 @@ The project addresses the vocabulary mismatch between modern user queries and hi
 
 ## Pipeline Architecture
 
-```mermaid
-flowchart TD
-    A[User Statement] --> B[expand_query: HyDE Prompting]
-    B -->|Generates 3-5 biblical variants| C[multi_retrieve: Qdrant Vector DB]
-    C -->|Top-N Candidate Chunks| D[rerank: Cross-Encoder]
-    D --> E{check_relevance}
-    E -- Score < Threshold & Attempts < 2 -->|Broaden Search| C
-    E -- Score >= Threshold --> F[classify: LLM Reasoning]
-    F -->|Structured JSON| G[StatementVerdict]
-    G --> H[FastAPI Endpoint & Web UI]
+```text
+                          [ User Statement ]
+                                  │
+                                  ▼
+                     [ expand_query (HyDE) ]
+                   (3-5 biblical query variants)
+                                  │
+                                  ▼
+                    [ multi_retrieve (Qdrant) ] ◄──────────┐
+                     (Dense Vector Retrieval)              │ Low score
+                                  │                        │ (Attempts < 2)
+                                  ▼                        │
+                    [ rerank (Cross-Encoder) ]             │
+                                  │                        │
+                                  ▼                        │
+                         { check_relevance } ──────────────┘
+                                  │
+                                  │ Score >= Threshold
+                                  ▼
+                       [ classify (LLM Reasoner) ]
+                     (Gemini 3.5 Flash + JSON Schema)
+                                  │
+                                  ▼
+                         [ StatementVerdict ]
+                   (Verdict, Confidence, Citations)
+                                  │
+                                  ▼
+                     [ FastAPI Endpoint / Web UI ]
 ```
 
 ---
@@ -103,18 +119,18 @@ BiblAI/
     │   ├── citation_check.py   # Citation verification script
     │   └── results/            # Benchmark outputs (JSONL)
     └── src/
+        ├── ingestion/
+        │   ├── parser.py       # Raw text parser
+        │   ├── chunker.py      # Sliding-window scripture chunker
+        │   └── book_mapping.py # Book abbreviations and metadata mapping
+        ├── embedding/
+        │   └── embed_and_store.py # Scripture chunking and vector index generation
         ├── agent/              # LangGraph workflow and tools
         │   ├── graph.py        # StateGraph, nodes, and conditional edges
         │   ├── tools.py        # HyDE expansion, Qdrant retrieval, and Gemini API calls
         │   └── schemas.py      # Pydantic models (StatementVerdict, Citation, Verdict)
-        ├── api/
-        │   └── main.py         # FastAPI routes and middleware
-        ├── embedding/
-        │   └── embed_and_store.py # Scripture chunking and vector index generation
-        └── ingestion/
-            ├── parser.py       # Raw text parser
-            ├── chunker.py      # Sliding-window scripture chunker
-            └── book_mapping.py # Book abbreviations and metadata mapping
+        └── api/
+            └── main.py         # FastAPI routes and middleware
 ```
 
 ---
