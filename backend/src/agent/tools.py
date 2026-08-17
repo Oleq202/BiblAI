@@ -43,7 +43,10 @@ def _get_client():
                     if line and not line.startswith("#") and "=" in line:
                         k, v = line.split("=", 1)
                         os.environ[k.strip()] = v.strip().strip("'\"")
-        _client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            print("[WARN] GEMINI_API_KEY is not set in environment!", flush=True)
+        _client = genai.Client(api_key=api_key)
     return _client
 
 
@@ -181,9 +184,11 @@ def expand_query(statement: str, max_retries=3, use_cache=True) -> list[str]:
     cache_path = CACHE_DIR / f"{_expansion_cache_key(statement)}.json"
     if use_cache and cache_path.exists():
         try:
-            return json.loads(cache_path.read_text(encoding="utf-8"))
-        except Exception:
-            pass
+            cached = json.loads(cache_path.read_text(encoding="utf-8"))
+            print(f"[expand_query] Loaded from cache ({len(cached)} queries)", flush=True)
+            return cached
+        except Exception as e:
+            print(f"[expand_query] Cache read error: {e}", flush=True)
 
     queries = [statement]
     for attempt in range(max_retries):
@@ -196,6 +201,7 @@ def expand_query(statement: str, max_retries=3, use_cache=True) -> list[str]:
                     system_instruction=EXPANSION_SYSTEM_PROMPT,
                     response_mime_type="application/json",
                     response_schema=EXPANSION_RESPONSE_SCHEMA,
+                    temperature=0.0,
                     max_output_tokens=1024,
                 ),
             )
@@ -210,10 +216,15 @@ def expand_query(statement: str, max_retries=3, use_cache=True) -> list[str]:
                         seen.add(clean_q.lower())
                         combined.append(clean_q)
                 queries = combined
+            print(f"[expand_query] Generated {len(queries)} queries for: '{statement}'", flush=True)
             if use_cache:
-                cache_path.write_text(json.dumps(queries, ensure_ascii=False, indent=2), encoding="utf-8")
+                try:
+                    cache_path.write_text(json.dumps(queries, ensure_ascii=False, indent=2), encoding="utf-8")
+                except Exception as e:
+                    print(f"[expand_query] Cache write error: {e}", flush=True)
             return queries
         except Exception as e:
+            print(f"[expand_query] Attempt {attempt+1} failed: {e}", flush=True)
             err_msg = str(e)
             if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
                 wait = 2 * (attempt + 1)
@@ -221,6 +232,7 @@ def expand_query(statement: str, max_retries=3, use_cache=True) -> list[str]:
                 wait = 2 ** attempt
             time.sleep(wait)
 
+    print(f"[expand_query] Fallback to original query: {statement}", flush=True)
     return queries
 
 
@@ -253,25 +265,14 @@ VERDICT_RESPONSE_SCHEMA = {
     "required": ["verdict", "confidence", "citations", "reasoning"],
 }
 
-SYSTEM_PROMPT = """Jesteś asystentem sprawdzającym, czy dane stwierdzenie jest \
-bezpośrednio poparte, bezpośrednio sprzeczne, czy wprost niewspomniane w \
-podanych fragmentach Pisma Świętego (Biblia Tysiąclecia).
+SYSTEM_PROMPT = """Jesteś asystentem weryfikującym zgodność stwierdzeń ze wskazanymi fragmentami Pisma Świętego (Biblia Tysiąclecia).
 
-Zasady:
-- "directly_supported": tekst wprost stwierdza to samo co użytkownik.
-- "directly_contradicted": tekst wprost stwierdza coś przeciwnego.
-- "not_directly_stated": żaden werset nie odnosi się wprost do tego \
-stwierdzenia - dotyczy to zwłaszcza stwierdzeń interpretacyjnych, \
-teologicznych lub wymagających wnioskowania. W tym wypadku podaj \
-najbliżej powiązane fragmenty, ale NIE wymuszaj werdyktu "supported" \
-ani "contradicted" tylko dlatego, że temat jest powiązany.
-- Cytuj TYLKO fragmenty rzeczywiście obecne w podanym kontekście. \
-Nigdy nie wymyślaj wersetów ani cytatów.
-- confidence powinno być niższe, gdy dowody są pośrednie lub sprzeczne \
-wewnętrznie.
-- Jeśli odpowiedź wymaga fragmentu, którego NIE MA w podanym kontekście, \
-NIE wspominaj, gdzie taki fragment by się znajdował ani co by powiedział - \
-po prostu stwierdź, że dostarczony kontekst nie zawiera odpowiedzi."""
+Zasady klasyfikacji:
+- "directly_supported": Tekst wprost lub poprzez bezpośrednie synonimy / opisowe sformułowania biblijne stwierdza to samo, co użytkownik. Pismo Święte używa języka starożytnego i opisowego (np. zakaz/potępienie 'obcowania z mężczyzną jak z kobietą' czy 'mężczyzn współżyjących ze sobą' jako obrzydliwości bezpośrednio popiera stwierdzenie 'homoseksualizm jest grzechem'). Jeśli treść biblijna wyraża dokładnie tę samą normę moralną, zakaz lub fakt, uznaj to za bezpośrednie poparcie ("directly_supported").
+- "directly_contradicted": Tekst wprost lub opisowo stwierdza coś przeciwnego do twierdzenia użytkownika.
+- "not_directly_stated": Żaden dostarczony fragment nie odnosi się do tego zagadnienia, temat jest całkowicie nieobecny lub wymaga daleko idących, niejednoznacznych spekulacji.
+- Cytuj TYLKO fragmenty rzeczywiście obecne w podanym kontekście. Nigdy nie wymyślaj wersetów ani cytatów.
+- Jeśli odpowiedź wymaga fragmentu, którego NIE MA w podanym kontekście, po prostu stwierdź, że dostarczony kontekst nie zawiera odpowiedzi."""
 
 
 def _cache_key(statement, retrieved_chunks):
@@ -311,6 +312,7 @@ niewspomniane wprost w tych fragmentach."""
                     system_instruction=SYSTEM_PROMPT,
                     response_mime_type="application/json",
                     response_schema=VERDICT_RESPONSE_SCHEMA,
+                    temperature=0.0,
                     max_output_tokens=2048,
                 ),
             )
