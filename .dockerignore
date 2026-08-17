@@ -1,0 +1,14 @@
+.venv/
+backend/.venv/
+.git/
+.gitignore
+.vscode/
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*/*/*/__pycache__/
+.env
+backend/.env
+pyrefly.json
+pyrightconfig.json
+*.log

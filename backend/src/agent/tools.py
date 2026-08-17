@@ -50,21 +50,23 @@ def _get_client():
 def _get_embed_model():
     global _embed_model
     if _embed_model is None:
-        from sentence_transformers import SentenceTransformer
+        import torch
+        torch.set_num_threads(1)
         try:
-            _embed_model = SentenceTransformer(
-                EMBED_MODEL_NAME,
-                backend="onnx",
-                model_kwargs={"file_name": "onnx/model_quint8_avx2.onnx"},
-            )
-        except Exception:
-            _embed_model = SentenceTransformer(EMBED_MODEL_NAME, backend="onnx")
+            torch.set_num_interop_threads(1)
+        except RuntimeError:
+            pass
+        from sentence_transformers import SentenceTransformer
+        _embed_model = SentenceTransformer(EMBED_MODEL_NAME)
     return _embed_model
 
 
 def _get_embedding(query: str) -> list[float]:
     embed_model = _get_embed_model()
-    return embed_model.encode([query], show_progress_bar=False)[0].tolist()
+    import torch
+    with torch.inference_mode():
+        return embed_model.encode([query], show_progress_bar=False).tolist()[0]
+
 
 
 def _get_qdrant():
