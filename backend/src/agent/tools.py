@@ -68,6 +68,12 @@ def _get_embedding(query: str) -> list[float]:
         return embed_model.encode([query], show_progress_bar=False).tolist()[0]
 
 
+def _get_embeddings(queries: list[str]) -> list[list[float]]:
+    embed_model = _get_embed_model()
+    import torch
+    with torch.inference_mode():
+        return embed_model.encode(queries, show_progress_bar=False).tolist()
+
 
 def _get_qdrant():
     global _qdrant
@@ -100,6 +106,33 @@ def retrieve(query, top_k=5, return_scores=False):
     return payloads
 
 
+def multi_retrieve(queries: list[str], top_k_per_query: int = 15, return_scores: bool = False):
+    if not queries:
+        return ([], []) if return_scores else []
+    
+    embeddings = _get_embeddings(queries)
+    qdrant = _get_qdrant()
+    
+    chunk_map = {}
+    for q_text, emb in zip(queries, embeddings):
+        results = qdrant.query_points(
+            collection_name=COLLECTION_NAME,
+            query=emb,
+            limit=top_k_per_query,
+        ).points
+        for point in results:
+            cid = point.payload["chunk_id"]
+            if cid not in chunk_map or point.score > chunk_map[cid][1]:
+                chunk_map[cid] = (point.payload, point.score)
+                
+    sorted_items = sorted(chunk_map.values(), key=lambda x: x[1], reverse=True)
+    payloads = [item[0] for item in sorted_items]
+    scores = [item[1] for item in sorted_items]
+    
+    if return_scores:
+        return payloads, scores
+    return payloads
+
 
 def rerank(query, chunks, scores=None):
     if USE_CROSS_ENCODER:
@@ -112,6 +145,83 @@ def rerank(query, chunks, scores=None):
     if scores is not None and len(scores) == len(chunks):
         return sorted(zip(chunks, scores), key=lambda x: x[1], reverse=True)
     return [(chunk, 1.0) for chunk in chunks]
+
+
+EXPANSION_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "queries": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Lista 2-4 wariantów fraz lub hipotetycznych wersetów w języku Biblii Tysiąclecia.",
+        }
+    },
+    "required": ["queries"],
+}
+
+EXPANSION_SYSTEM_PROMPT = """Jesteś ekspertem tekstu, stylistyki i języka Biblii Tysiąclecia.
+Twoim zadaniem jest przekształcenie współczesnego lub teologicznego stwierdzenia użytkownika \
+na 3-5 pełnych, hipotetycznych wersetów lub zdań biblijnych w języku Biblii Tysiąclecia (technika HyDE - Hypothetical Document Embeddings).
+
+Zasady:
+1. Pismo Święte nie używa współczesnych pojęć abstrakcyjnych, lecz konkretnego, starożytnego języka opisowego.
+   (np. zamiast 'homoseksualizm' -> 'Nie będziesz obcował z mężczyzną tak jak się obcuje z kobietą, to jest obrzydliwość', 'Mężczyźni współżyjący ze sobą ani rozpustnicy nie odziedziczą królestwa Bożego', 'Mężczyźni porzuciwszy współżycie z kobietą zapałali żądzą ku sobie, mężczyźni z mężczyznami uprawiając bezwstyd';
+   zamiast 'eutanazja' -> 'Nie będziesz zabijał niewinnego ani cierpiącego', 'Bóg daje życie i Bóg je odbiera';
+   zamiast 'aborcja' -> 'Zanim ukształtowałem cię w łonie matki, znałem cię', 'Kto uderzy kobietę brzemienną, tak że poroni').
+2. Wygeneruj 3-5 pełnych zdań / wersetów w języku polskim w stylu Biblii Tysiąclecia (zbieżnych z prawem Starego Testamentu, mowami proroków oraz listami Nowego Testamentu).
+3. Zwróć wynik w zadanym schemacie JSON."""
+
+
+def _expansion_cache_key(statement: str) -> str:
+    raw = "expansion||" + statement.strip().lower() + "||" + GEMINI_MODEL
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def expand_query(statement: str, max_retries=3, use_cache=True) -> list[str]:
+    cache_path = CACHE_DIR / f"{_expansion_cache_key(statement)}.json"
+    if use_cache and cache_path.exists():
+        try:
+            return json.loads(cache_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
+    queries = [statement]
+    for attempt in range(max_retries):
+        try:
+            client = _get_client()
+            response = client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=f"Stwierdzenie użytkownika: \"{statement}\"",
+                config=types.GenerateContentConfig(
+                    system_instruction=EXPANSION_SYSTEM_PROMPT,
+                    response_mime_type="application/json",
+                    response_schema=EXPANSION_RESPONSE_SCHEMA,
+                    max_output_tokens=1024,
+                ),
+            )
+            result = json.loads(response.text)
+            gen_queries = result.get("queries", [])
+            if gen_queries:
+                seen = set()
+                combined = []
+                for q in [statement] + gen_queries:
+                    clean_q = q.strip().strip('"\'')
+                    if clean_q and clean_q.lower() not in seen:
+                        seen.add(clean_q.lower())
+                        combined.append(clean_q)
+                queries = combined
+            if use_cache:
+                cache_path.write_text(json.dumps(queries, ensure_ascii=False, indent=2), encoding="utf-8")
+            return queries
+        except Exception as e:
+            err_msg = str(e)
+            if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                wait = 2 * (attempt + 1)
+            else:
+                wait = 2 ** attempt
+            time.sleep(wait)
+
+    return queries
 
 
 

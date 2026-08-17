@@ -3,29 +3,39 @@ from typing import TypedDict
 from langgraph.graph import StateGraph, END
 
 try:
-    from .tools import retrieve, rerank, classify_support, USE_CROSS_ENCODER
+    from .tools import retrieve, multi_retrieve, expand_query, rerank, classify_support, USE_CROSS_ENCODER
     from .schemas import StatementVerdict
 except (ImportError, ValueError):
-    from tools import retrieve, rerank, classify_support, USE_CROSS_ENCODER
+    from tools import retrieve, multi_retrieve, expand_query, rerank, classify_support, USE_CROSS_ENCODER
     from schemas import StatementVerdict
 
-RETRIEVE_TOP_K = 20
+RETRIEVE_TOP_K_PER_QUERY = 15
 RERANK_TOP_K = 5
-BROADER_RETRIEVE_TOP_K = 30
+BROADER_RETRIEVE_TOP_K = 25
 RELEVANCE_SCORE_THRESHOLD = 0.35
 
 
 class AgentState(TypedDict):
     statement: str
+    expanded_queries: list[str]
     chunks: list[dict]
     rerank_scores: list[float]
     retrieval_attempts: int
     verdict: StatementVerdict | None
 
 
+def expand_query_node(state):
+    expanded = expand_query(state["statement"])
+    return {
+        **state,
+        "expanded_queries": expanded,
+    }
+
+
 def retrieve_and_rerank_node(state):
-    top_k = RETRIEVE_TOP_K if state.get("retrieval_attempts", 0) == 0 else BROADER_RETRIEVE_TOP_K
-    candidates, scores = retrieve(state["statement"], top_k=top_k, return_scores=True)
+    queries = state.get("expanded_queries") or [state["statement"]]
+    top_k = RETRIEVE_TOP_K_PER_QUERY if state.get("retrieval_attempts", 0) == 0 else BROADER_RETRIEVE_TOP_K
+    candidates, scores = multi_retrieve(queries, top_k_per_query=top_k, return_scores=True)
     reranked = rerank(state["statement"], candidates, scores=scores)
 
     top_chunks = [chunk for chunk, score in reranked[:RERANK_TOP_K]]
@@ -55,10 +65,12 @@ def classify_node(state):
 
 def build_graph():
     graph = StateGraph(AgentState)
+    graph.add_node("expand_query", expand_query_node)
     graph.add_node("retrieve_and_rerank", retrieve_and_rerank_node)
     graph.add_node("classify", classify_node)
 
-    graph.set_entry_point("retrieve_and_rerank")
+    graph.set_entry_point("expand_query")
+    graph.add_edge("expand_query", "retrieve_and_rerank")
     graph.add_conditional_edges(
         "retrieve_and_rerank",
         check_relevance,
@@ -72,6 +84,7 @@ def verify_statement(statement):
     app = build_graph()
     result = app.invoke({
         "statement": statement,
+        "expanded_queries": [],
         "chunks": [],
         "rerank_scores": [],
         "retrieval_attempts": 0,

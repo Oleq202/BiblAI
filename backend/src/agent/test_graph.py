@@ -10,5 +10,5 @@ try:
 except (ImportError, ValueError):
     from .graph import verify_statement
 
-verdict = verify_statement("Kościół katolicki nie popiera antykoncepcji")
+verdict = verify_statement("Homoseksualizm jest grzechem")
 print(verdict.model_dump_json(indent=2))
