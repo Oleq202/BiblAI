@@ -18,7 +18,7 @@ except (ImportError, ValueError):
 BASE_DIR = Path(__file__).resolve().parents[2]
 QDRANT_DIR = BASE_DIR / "data" / "qdrant"
 COLLECTION_NAME = "biblia_tysiaclecia"
-EMBED_MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
+EMBED_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 GEMINI_MODEL = "models/gemini-3.5-flash-lite"
 USE_CROSS_ENCODER = os.environ.get("USE_CROSS_ENCODER", "false").lower() == "true"
 RERANK_MODEL_NAME = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
@@ -47,57 +47,24 @@ def _get_client():
     return _client
 
 
-def _encode_query_hf(query: str, token: str) -> list[float]:
-    model_id = f"sentence-transformers/{EMBED_MODEL_NAME}" if not EMBED_MODEL_NAME.startswith("sentence-transformers/") else EMBED_MODEL_NAME
-    url = f"https://router.huggingface.co/hf-inference/models/{model_id}"
-    payload = json.dumps({
-        "inputs": query,
-        "options": {"wait_for_model": True, "use_cache": True}
-    }).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        },
-    )
-    with urllib.request.urlopen(req, timeout=15) as response:
-        result = json.loads(response.read().decode("utf-8"))
-        if isinstance(result, list):
-            if result and isinstance(result[0], list):
-                return result[0]
-            return result
-        raise ValueError(f"Unexpected response from HF inference: {result}")
-
-
-
 def _get_embed_model():
     global _embed_model
     if _embed_model is None:
-        import torch
-        torch.set_num_threads(1)
-        try:
-            torch.set_num_interop_threads(1)
-        except RuntimeError:
-            pass
         from sentence_transformers import SentenceTransformer
-        _embed_model = SentenceTransformer(EMBED_MODEL_NAME)
+        try:
+            _embed_model = SentenceTransformer(
+                EMBED_MODEL_NAME,
+                backend="onnx",
+                model_kwargs={"file_name": "onnx/model_quint8_avx2.onnx"},
+            )
+        except Exception:
+            _embed_model = SentenceTransformer(EMBED_MODEL_NAME, backend="onnx")
     return _embed_model
 
 
 def _get_embedding(query: str) -> list[float]:
-    hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY")
-    if hf_token:
-        try:
-            return _encode_query_hf(query, hf_token)
-        except Exception as e:
-            print(f"HF API inference error: {e}, falling back to local embedder.")
-    
     embed_model = _get_embed_model()
-    import torch
-    with torch.inference_mode():
-        return embed_model.encode([query], show_progress_bar=False).tolist()[0]
+    return embed_model.encode([query], show_progress_bar=False)[0].tolist()
 
 
 def _get_qdrant():

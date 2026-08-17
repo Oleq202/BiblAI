@@ -1,6 +1,6 @@
-pymupdf
-qdrant-client
+optimum[onnxruntime]
 sentence-transformers
+qdrant-client
 fastapi
 google.genai
 langgraph
