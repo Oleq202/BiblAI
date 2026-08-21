@@ -58,6 +58,7 @@
             font-size: 17px;
             line-height: 1.55;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .wrap {
@@ -317,9 +318,18 @@
         .citation {
             display: flex;
             gap: 16px;
-            padding: 4px 0 16px 18px;
+            padding: 10px 14px 14px 18px;
             border-left: 2px solid var(--border-soft);
-            margin-bottom: 4px;
+            margin-bottom: 8px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-left-color 0.15s ease, transform 0.1s ease;
+            position: relative;
+        }
+
+        .citation:hover {
+            background: rgba(156, 122, 46, 0.07);
+            transform: translateX(2px);
         }
 
         .citation.supports {
@@ -343,10 +353,33 @@
             padding-top: 2px;
         }
 
+        .citation-body {
+            flex: 1;
+        }
+
         .citation-quote {
             font-style: italic;
             font-size: 15.5px;
             color: #4A4234;
+            margin-bottom: 4px;
+        }
+
+        .citation-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--gold);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        .citation:hover .citation-hint {
+            opacity: 1;
+            text-decoration: underline;
         }
 
         .no-citations {
@@ -371,7 +404,190 @@
             color: var(--ink-soft);
         }
 
-        @media (max-width: 560px) {
+        /* --- Reader Slide-Over Drawer --- */
+        .reader-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(43, 38, 32, 0.45);
+            backdrop-filter: blur(3px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 1000;
+        }
+
+        .reader-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .reader-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            max-width: 620px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            box-shadow: -10px 0 30px rgba(43, 38, 32, 0.18);
+            z-index: 1001;
+            transform: translateX(100%);
+            transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reader-drawer.open {
+            transform: translateX(0);
+        }
+
+        .reader-header {
+            padding: 24px 28px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background: var(--bg);
+        }
+
+        .reader-title-box h2 {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 600;
+            margin: 0 0 4px;
+            color: var(--ink);
+        }
+
+        .reader-title-box .reader-meta {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--ink-soft);
+        }
+
+        .reader-close-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--ink-soft);
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .reader-close-btn:hover {
+            background: var(--border);
+            color: var(--ink);
+        }
+
+        .reader-nav {
+            padding: 10px 24px;
+            background: rgba(217, 208, 187, 0.3);
+            border-bottom: 1px solid var(--border-soft);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        .reader-nav-btn {
+            background: transparent;
+            color: var(--ink);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .reader-nav-btn:hover:not(:disabled) {
+            background: var(--bg-panel);
+        }
+
+        .reader-nav-btn:disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        .reader-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px 48px;
+            scroll-behavior: smooth;
+        }
+
+        .verse-row {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 10px;
+            line-height: 1.62;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: background 0.25s ease, border-left-color 0.25s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .verse-row.highlighted {
+            background: var(--gold-bg);
+            border-left-color: var(--gold);
+            animation: highlightPulse 1.5s ease;
+        }
+
+        @keyframes highlightPulse {
+            0% {
+                background: #F8E3A8;
+            }
+
+            100% {
+                background: var(--gold-bg);
+            }
+        }
+
+        .verse-num {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--ink-soft);
+            min-width: 24px;
+            text-align: right;
+            user-select: none;
+            padding-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .verse-row.highlighted .verse-num {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .verse-text {
+            font-family: var(--font-body);
+            font-size: 16.5px;
+            color: var(--ink);
+        }
+
+        .reader-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: var(--ink-soft);
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        @media (max-width: 640px) {
             .wrap {
                 padding: 40px 18px 64px;
             }
@@ -382,6 +598,18 @@
 
             .statement-echo {
                 font-size: 18px;
+            }
+
+            .reader-drawer {
+                max-width: 100%;
+            }
+
+            .reader-header {
+                padding: 18px 20px;
+            }
+
+            .reader-body {
+                padding: 18px 20px 36px;
             }
         }
     </style>
@@ -416,14 +644,52 @@
         </footer>
     </div>
 
+    <div class="reader-backdrop" id="reader-backdrop"></div>
+    <div class="reader-drawer" id="reader-drawer" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="reader-header">
+            <div class="reader-title-box">
+                <h2 id="reader-book-title">Księga Wyjścia</h2>
+                <div class="reader-meta" id="reader-meta">Rozdział 3 (z 40)</div>
+            </div>
+            <button type="button" class="reader-close-btn" id="reader-close-btn" aria-label="Zamknij">✕</button>
+        </div>
+        <div class="reader-nav">
+            <button type="button" class="reader-nav-btn" id="reader-prev-btn">← Poprzedni</button>
+            <span id="reader-nav-indicator">Rozdział 3</span>
+            <button type="button" class="reader-nav-btn" id="reader-next-btn">Następny →</button>
+        </div>
+        <div class="reader-body" id="reader-body">
+        </div>
+    </div>
+
     <script>
-        const API_BASE_URL = window.location.origin;
+        const isSeparateDevServer = window.location.protocol === 'file:' ||
+            ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '8000');
+        const API_BASE_URL = isSeparateDevServer ? 'http://127.0.0.1:8000' : window.location.origin;
 
         const form = document.getElementById('verify-form');
         const textarea = document.getElementById('statement');
         const charCount = document.getElementById('char-count');
         const submitBtn = document.getElementById('submit-btn');
         const stateArea = document.getElementById('state-area');
+
+        const readerBackdrop = document.getElementById('reader-backdrop');
+        const readerDrawer = document.getElementById('reader-drawer');
+        const readerCloseBtn = document.getElementById('reader-close-btn');
+        const readerBookTitle = document.getElementById('reader-book-title');
+        const readerMeta = document.getElementById('reader-meta');
+        const readerBody = document.getElementById('reader-body');
+        const readerPrevBtn = document.getElementById('reader-prev-btn');
+        const readerNextBtn = document.getElementById('reader-next-btn');
+        const readerNavIndicator = document.getElementById('reader-nav-indicator');
+
+        let currentReaderState = {
+            book: null,
+            chapter: null,
+            prev: null,
+            next: null,
+            highlightVerses: []
+        };
 
         textarea.addEventListener('input', () => {
             charCount.textContent = textarea.value.length;
@@ -462,15 +728,140 @@
       </div>`;
         }
 
+        function parseVerseRef(refStr) {
+            if (!refStr) return null;
+            const trimmed = refStr.trim();
+            const match = trimmed.match(/^([\d]?\s*[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]+)\s+(\d+)[:,\s]*(\d+)?(?:-(\d+))?/);
+            if (!match) return null;
+            const book = match[1].trim();
+            const chapter = parseInt(match[2], 10);
+            const startVerse = match[3] ? parseInt(match[3], 10) : null;
+            const endVerse = match[4] ? parseInt(match[4], 10) : startVerse;
+
+            const verses = [];
+            if (startVerse !== null) {
+                for (let v = startVerse; v <= (endVerse || startVerse); v++) {
+                    verses.push(v);
+                }
+            }
+            return { book, chapter, verses };
+        }
+
+        async function openChapterReader(book, chapter, highlightVerses = []) {
+            currentReaderState.book = book;
+            currentReaderState.chapter = chapter;
+            currentReaderState.highlightVerses = highlightVerses || [];
+
+            readerDrawer.classList.add('open');
+            readerBackdrop.classList.add('open');
+            readerDrawer.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+
+            readerBody.innerHTML = `
+                <div class="reader-loading">
+                    <span class="dot"></span> wczytywanie rozdziału…
+                </div>`;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/chapter?book=${encodeURIComponent(book)}&chapter=${chapter}`);
+                if (!res.ok) {
+                    throw new Error(`Nie znaleziono rozdziału (${res.status})`);
+                }
+                const data = await res.json();
+                renderChapterContent(data, currentReaderState.highlightVerses);
+            } catch (err) {
+                readerBody.innerHTML = `<div class="error-box" style="margin:20px;">Błąd: ${escapeHtml(err.message)}</div>`;
+            }
+        }
+
+        function closeChapterReader() {
+            readerDrawer.classList.remove('open');
+            readerBackdrop.classList.remove('open');
+            readerDrawer.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        function renderChapterContent(data, highlightVerses = []) {
+            readerBookTitle.textContent = data.book_name;
+            readerMeta.textContent = `Rozdział ${data.chapter} (z ${data.total_chapters_in_book})`;
+            readerNavIndicator.textContent = `Rozdz. ${data.chapter}`;
+
+            currentReaderState.prev = data.prev_chapter;
+            currentReaderState.next = data.next_chapter;
+
+            if (data.prev_chapter) {
+                readerPrevBtn.disabled = false;
+                readerPrevBtn.textContent = `← ${data.prev_chapter.book === data.book_abbr ? `Rozdz. ${data.prev_chapter.chapter}` : data.prev_chapter.book}`;
+            } else {
+                readerPrevBtn.disabled = true;
+                readerPrevBtn.textContent = `← Brak`;
+            }
+
+            if (data.next_chapter) {
+                readerNextBtn.disabled = false;
+                readerNextBtn.textContent = `${data.next_chapter.book === data.book_abbr ? `Rozdz. ${data.next_chapter.chapter}` : data.next_chapter.book} →`;
+            } else {
+                readerNextBtn.disabled = true;
+                readerNextBtn.textContent = `Brak →`;
+            }
+
+            const versesHtml = data.verses.map(v => {
+                const isHighlight = highlightVerses.includes(v.verse);
+                return `
+                    <div class="verse-row ${isHighlight ? 'highlighted' : ''}" id="verse-${v.verse}">
+                        <span class="verse-num">${v.verse}</span>
+                        <span class="verse-text">${escapeHtml(v.text)}</span>
+                    </div>
+                `;
+            }).join('');
+
+            readerBody.innerHTML = versesHtml;
+
+            if (highlightVerses.length > 0) {
+                setTimeout(() => {
+                    const targetEl = document.getElementById(`verse-${highlightVerses[0]}`);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+            } else {
+                readerBody.scrollTop = 0;
+            }
+        }
+
+        readerCloseBtn.addEventListener('click', closeChapterReader);
+        readerBackdrop.addEventListener('click', closeChapterReader);
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && readerDrawer.classList.contains('open')) {
+                closeChapterReader();
+            }
+        });
+
+        readerPrevBtn.addEventListener('click', () => {
+            if (currentReaderState.prev) {
+                openChapterReader(currentReaderState.prev.book, currentReaderState.prev.chapter, []);
+            }
+        });
+
+        readerNextBtn.addEventListener('click', () => {
+            if (currentReaderState.next) {
+                openChapterReader(currentReaderState.next.book, currentReaderState.next.chapter, []);
+            }
+        });
+
         function renderResult(data) {
             const verdictInfo = VERDICT_LABELS[data.verdict] || { text: data.verdict, cls: '' };
             const confidencePct = Math.round(data.confidence * 100);
 
             const citationsHtml = data.citations.length
-                ? data.citations.map(c => `
-          <div class="citation ${escapeHtml(c.relation)}">
+                ? data.citations.map((c, idx) => `
+          <div class="citation ${escapeHtml(c.relation)}" data-ref="${escapeHtml(c.ref)}" title="Kliknij, aby przeczytać cały rozdział">
             <div class="citation-ref">${escapeHtml(c.ref)}<br><span style="opacity:0.6">${RELATION_LABELS[c.relation] || c.relation}</span></div>
-            <div class="citation-quote">„${escapeHtml(c.quote)}”</div>
+            <div class="citation-body">
+                <div class="citation-quote">„${escapeHtml(c.quote)}”</div>
+                <div class="citation-hint">📖 Zobacz cały rozdział ↗</div>
+            </div>
           </div>
         `).join('')
                 : `<p class="no-citations">Brak fragmentów wystarczająco powiązanych z tym stwierdzeniem.</p>`;
@@ -487,6 +878,17 @@
         ${citationsHtml}
       </div>
     `;
+
+            const citationElements = stateArea.querySelectorAll('.citation');
+            citationElements.forEach(el => {
+                const refStr = el.getAttribute('data-ref');
+                const parsed = parseVerseRef(refStr);
+                if (parsed) {
+                    el.addEventListener('click', () => {
+                        openChapterReader(parsed.book, parsed.chapter, parsed.verses);
+                    });
+                }
+            });
         }
 
         form.addEventListener('submit', async (e) => {
@@ -512,7 +914,6 @@
                             errorMessage = errData.detail;
                         }
                     } catch (_) {
-                        // Response was not JSON (e.g. 404/502 HTML error page from host)
                     }
                     throw new Error(errorMessage);
                 }
