@@ -13,6 +13,8 @@ RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/wh
 
 COPY . .
 
+RUN python -c "import sys; sys.path.insert(0, 'backend/src/agent'); sys.path.insert(0, 'backend/src/api'); from bm_25 import get_bm25_index; get_bm25_index(); from chapter_service import get_chapter; get_chapter('Wj', 3)"
+
 EXPOSE 8080
 
 CMD ["sh", "-c", "uvicorn backend.src.api.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
