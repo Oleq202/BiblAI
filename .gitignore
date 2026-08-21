@@ -10,3 +10,5 @@ __pycache__
 llm_cache
 backend/eval/results
 backend/data/qdrant/.lock
+backend/data/bm25_index.pkl
+*.pkl

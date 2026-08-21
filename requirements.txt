@@ -4,3 +4,4 @@ fastapi
 google.genai
 langgraph
 uvicorn[standard]
+rank-bm25
