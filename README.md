@@ -184,6 +184,45 @@ Evaluates a statement against the corpus.
 
 ---
 
+### `GET /chapter`
+Retrieves the complete text and verse list of a biblical chapter for full-context inspection, including adjacent chapter metadata.
+
+**Parameters:**
+- `book` (query string, required): Book abbreviation (e.g. `Wj`, `Rdz`, `1 Sm`, `Mt`, `Ap`).
+- `chapter` (query integer, required): Chapter number (e.g. `3`).
+
+**Response (`200 OK`):**
+```json
+{
+  "book_abbr": "Wj",
+  "book_name": "Księga Wyjścia",
+  "chapter": 3,
+  "total_chapters_in_book": 40,
+  "verses": [
+    {
+      "verse": 1,
+      "text": "Mojżesz pasł owce swojego teścia Jetry, kapłana Madianitów..."
+    },
+    {
+      "verse": 10,
+      "text": "Idź przeto teraz, oto posyłam cię do faraona, i wyprowadź mój lud, Izraelitów, z Egiptu."
+    }
+  ],
+  "prev_chapter": {
+    "book": "Wj",
+    "chapter": 2,
+    "book_name": "Księga Wyjścia"
+  },
+  "next_chapter": {
+    "book": "Wj",
+    "chapter": 4,
+    "book_name": "Księga Wyjścia"
+  }
+}
+```
+
+---
+
 ## Getting Started
 
 ### Prerequisites
