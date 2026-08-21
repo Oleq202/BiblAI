@@ -5,3 +5,4 @@ google.genai
 langgraph
 uvicorn[standard]
 rank-bm25
+pystempel>=2.0.0

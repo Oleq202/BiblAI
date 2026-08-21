@@ -23,7 +23,7 @@ The project addresses the vocabulary mismatch between modern user queries and hi
 - **Domain-Specific Query Expansion (HyDE)**: Uses Gemini 3.5 Flash to expand modern or abstract concepts into 3-5 hypothetical archaic/biblical phrasing variants before retrieval, significantly improving both semantic and keyword matching.
 - **Hybrid Retrieval (Dense + Sparse BM25)**: Executes parallel retrieval across all expanded queries:
   - **Dense Path**: Cosine similarity search over embedded Qdrant vectors (`paraphrase-multilingual-mpnet-base-v2`).
-  - **Sparse Path**: BM25 Okapi search with custom Polish tokenization and stopword filtering for exact keyword and proper noun matching.
+  - **Sparse Path**: BM25 Okapi search with Polish morphological lemmatization (PoliMorf dictionary via `pystempel`) and stopword filtering for inflection-aware keyword and proper noun matching.
 - **Reciprocal Rank Fusion (RRF)**: Merges ranked candidate lists from dense and sparse retrieval using reciprocal rank weighting ($RRF(d) = \sum \frac{w}{60 + \text{rank}(d)}$) to yield a balanced candidate pool.
 - **Two-Stage Reranking**: Fused candidates can be further reranked via a multilingual cross-encoder (`cross-encoder/mmarco-mMiniLMv2-L12-H384-v1`).
 - **Structured Pydantic Outputs**: Enforces JSON Schema constraints on LLM responses to extract structured verdicts (`directly_supported`, `directly_contradicted`, `not_directly_stated`), confidence scores, and verse citations with exact quotes and relation tags.
@@ -79,7 +79,7 @@ The project addresses the vocabulary mismatch between modern user queries and hi
 | **Agent Orchestration** | LangGraph, StateGraph |
 | **LLM & Inference** | Google Gemini 3.5 Flash (`google-genai`), Structured JSON Schema |
 | **Vector Database (Dense)** | Qdrant (Embedded local storage) |
-| **Sparse Retrieval** | BM25 Okapi (`rank-bm25`), Custom Polish tokenization & stopword filter |
+| **Sparse Retrieval** | BM25 Okapi (`rank-bm25`), Polish morphological lemmatization (PoliMorf via `pystempel`) |
 | **Fusion Algorithm** | Reciprocal Rank Fusion (RRF, $k=60$) |
 | **Embeddings** | Sentence-Transformers (`paraphrase-multilingual-mpnet-base-v2`) |
 | **Reranking** | Cross-Encoder (`cross-encoder/mmarco-mMiniLMv2-L12-H384-v1`) |

@@ -1,7 +1,9 @@
+import gzip
 import json
 import os
 import re
 import pickle
+import importlib.resources as pkg_resources
 from pathlib import Path
 from rank_bm25 import BM25Okapi
 
@@ -11,6 +13,7 @@ BM25_CACHE_PATH = BASE_DIR / "data" / "bm25_index.pkl"
 
 _bm25_index = None
 _bm25_chunks = None
+_stemmer = None
 
 POLISH_STOPWORDS = {
     "a", "aby", "ach", "acz", "aczkolwiek", "aj", "albo", "ale", "ani", "aż",
@@ -41,19 +44,52 @@ POLISH_STOPWORDS = {
     "właśnie", "wtedy", "wy", "z", "za", "zawsze", "zaś", "ze", "znowu", "znów", "został"
 }
 
+
+def _get_stemmer():
+    global _stemmer
+    if _stemmer is None:
+        try:
+            from pystempel import Stemmer
+            from pystempel.streams import DataInputStream
+            from pystempel.data import polimorf as polimorf_pkg
+
+            resource = pkg_resources.files(polimorf_pkg).joinpath("stemmer_polimorf.tbl.gz")
+            with resource.open("rb") as raw_f:
+                with gzip.open(raw_f, "rb") as gz_f:
+                    _stemmer = Stemmer.from_stream(DataInputStream(gz_f, None))
+        except Exception as e:
+            try:
+                from pystempel import Stemmer
+                _stemmer = Stemmer.polimorf()
+            except Exception:
+                _stemmer = None
+    return _stemmer
+
+
 def tokenize_text(text):
     words = re.findall(r"\b\w+\b", text.lower())
-    return [token for token in words if len(token) > 1 and token not in POLISH_STOPWORDS]
-    
+    stemmer = _get_stemmer()
+    tokens = []
+    for token in words:
+        if len(token) <= 1 or token in POLISH_STOPWORDS:
+            continue
+        tokens.append(token)
+        if stemmer is not None:
+            lemma = stemmer(token)
+            if lemma and lemma != token and lemma not in POLISH_STOPWORDS:
+                tokens.append(lemma)
+    return tokens
+
+
 def get_bm25_index():
     global _bm25_index, _bm25_chunks
-    
+
     if _bm25_index is not None:
         return _bm25_index, _bm25_chunks
 
     if BM25_CACHE_PATH.exists():
         try:
-            with open(BM25_CACHE_PATH, 'rb') as f:
+            with open(BM25_CACHE_PATH, "rb") as f:
                 data = pickle.load(f)
                 _bm25_index = data["index"]
                 _bm25_chunks = data["chunks"]
@@ -61,8 +97,8 @@ def get_bm25_index():
                 return _bm25_index, _bm25_chunks
         except Exception as e:
             print(f"[BM25] Cache load failed: {e}, rebuilding index...", flush=True)
-    
-    print(f"[BM25] Building index from {CHUNKS_PATH}...", flush=True)
+
+    print(f"[BM25] Building lemmatized index from {CHUNKS_PATH}...", flush=True)
     chunks = []
     with open(CHUNKS_PATH, encoding="utf-8") as f:
         for line in f:
@@ -80,6 +116,7 @@ def get_bm25_index():
     except Exception as e:
         print(f"[BM25] Could not save cache: {e}", flush=True)
     return _bm25_index, _bm25_chunks
+
 
 def bm25_retrieve(query, top_k=15):
     index, chunks = get_bm25_index()
@@ -99,6 +136,6 @@ def multi_bm25_retrieve(queries, top_k_per_query=15):
             chunk_id = chunk["chunk_id"]
             if chunk_id not in chunk_map or score > chunk_map[chunk_id][1]:
                 chunk_map[chunk_id] = (chunk, score)
-    
+
     sorted_items = sorted(chunk_map.values(), key=lambda x: x[1], reverse=True)
     return sorted_items
