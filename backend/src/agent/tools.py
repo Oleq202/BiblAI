@@ -12,8 +12,10 @@ from qdrant_client import QdrantClient
 
 try:
     from .schemas import StatementVerdict, Verdict
+    from .bm_25 import bm25_retrieve, multi_bm25_retrieve, get_bm25_index
 except (ImportError, ValueError):
     from schemas import StatementVerdict, Verdict
+    from bm_25 import bm25_retrieve, multi_bm25_retrieve, get_bm25_index
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 QDRANT_DIR = BASE_DIR / "data" / "qdrant"
@@ -135,6 +137,55 @@ def multi_retrieve(queries: list[str], top_k_per_query: int = 15, return_scores:
     if return_scores:
         return payloads, scores
     return payloads
+
+
+def reciprocal_rank_fusion(ranked_lists, weights=None, k=60, top_n=20):
+    if weights is None:
+        weights = [1.0] * len(ranked_lists)
+
+    rrf_scores = {}
+    chunk_by_id = {}
+
+    for ranked_list, weight in zip(ranked_lists, weights):
+        for rank_idx, chunk in enumerate(ranked_list):
+            chunk_id = chunk["chunk_id"]
+            chunk_by_id[chunk_id] = chunk
+            rank = rank_idx + 1
+            score = weight * (1.0 / (k + rank))
+            rrf_scores[chunk_id] = rrf_scores.get(chunk_id, 0.0) + score
+
+    sorted_chunk_ids = sorted(rrf_scores.keys(), key=lambda cid: rrf_scores[cid], reverse=True)
+    
+    fused_results = [
+        (chunk_by_id[cid], rrf_scores[cid])
+        for cid in sorted_chunk_ids[:top_n]
+    ]
+    return fused_results
+
+
+def hybrid_retrieve(queries, top_k_dense=15, top_k_sparse=15, fused_top_n=20,
+    dense_weight=1.0, sparse_weight=1.0, rrf_k=60, return_scores=False):
+    if not queries:
+        return ([], []) if return_scores else []
+
+    dense_candidates, _ = multi_retrieve(queries, top_k_per_query=top_k_dense, return_scores=True)
+
+    bm25_results = multi_bm25_retrieve(queries, top_k_per_query=top_k_sparse)
+    sparse_candidates = [item[0] for item in bm25_results]
+
+    fused = reciprocal_rank_fusion(
+        ranked_lists=[dense_candidates, sparse_candidates],
+        weights=[dense_weight, sparse_weight],
+        k=rrf_k,
+        top_n=fused_top_n,
+    )
+
+    fused_payloads = [item[0] for item in fused]
+    fused_scores = [item[1] for item in fused]
+
+    if return_scores:
+        return fused_payloads, fused_scores
+    return fused_payloads
 
 
 def rerank(query, chunks, scores=None):
