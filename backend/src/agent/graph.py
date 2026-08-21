@@ -3,15 +3,36 @@ from typing import TypedDict
 from langgraph.graph import StateGraph, END
 
 try:
-    from .tools import retrieve, multi_retrieve, expand_query, rerank, classify_support, USE_CROSS_ENCODER
+    from .tools import (
+        retrieve,
+        multi_retrieve,
+        hybrid_retrieve,
+        expand_query,
+        rerank,
+        classify_support,
+        USE_CROSS_ENCODER,
+    )
     from .schemas import StatementVerdict
 except (ImportError, ValueError):
-    from tools import retrieve, multi_retrieve, expand_query, rerank, classify_support, USE_CROSS_ENCODER
+    from tools import (
+        retrieve,
+        multi_retrieve,
+        hybrid_retrieve,
+        expand_query,
+        rerank,
+        classify_support,
+        USE_CROSS_ENCODER,
+    )
     from schemas import StatementVerdict
 
-RETRIEVE_TOP_K_PER_QUERY = 15
+DENSE_TOP_K = 15
+SPARSE_TOP_K = 15
+FUSED_TOP_N = 25
 RERANK_TOP_K = 5
-BROADER_RETRIEVE_TOP_K = 25
+
+BROADER_DENSE_TOP_K = 25
+BROADER_SPARSE_TOP_K = 25
+BROADER_FUSED_TOP_N = 35
 RELEVANCE_SCORE_THRESHOLD = 0.35
 
 
@@ -34,9 +55,19 @@ def expand_query_node(state):
 
 def retrieve_and_rerank_node(state):
     queries = state.get("expanded_queries") or [state["statement"]]
-    top_k = RETRIEVE_TOP_K_PER_QUERY if state.get("retrieval_attempts", 0) == 0 else BROADER_RETRIEVE_TOP_K
-    candidates, scores = multi_retrieve(queries, top_k_per_query=top_k, return_scores=True)
-    reranked = rerank(state["statement"], candidates, scores=scores)
+    attempt = state.get("retrieval_attempts", 0)
+    top_k_dense = DENSE_TOP_K if attempt == 0 else BROADER_DENSE_TOP_K
+    top_k_sparse = SPARSE_TOP_K if attempt == 0 else BROADER_SPARSE_TOP_K
+    fused_n = FUSED_TOP_N if attempt == 0 else BROADER_FUSED_TOP_N
+
+    candidates, rrf_scores = hybrid_retrieve(
+        queries=queries,
+        top_k_dense=top_k_dense,
+        top_k_sparse=top_k_sparse,
+        fused_top_n=fused_n,
+        return_scores=True,
+    )
+    reranked = rerank(state["statement"], candidates, scores=rrf_scores)
 
     top_chunks = [chunk for chunk, score in reranked[:RERANK_TOP_K]]
     top_scores = [float(score) for chunk, score in reranked[:RERANK_TOP_K]]
@@ -45,7 +76,7 @@ def retrieve_and_rerank_node(state):
         **state,
         "chunks": top_chunks,
         "rerank_scores": top_scores,
-        "retrieval_attempts": state.get("retrieval_attempts", 0) + 1,
+        "retrieval_attempts": attempt + 1,
     }
 
 
