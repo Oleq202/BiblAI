@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -10,9 +10,11 @@ from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(BASE_DIR / "src" / "agent"))
+sys.path.insert(0, str(BASE_DIR / "src" / "api"))
 
 from graph import verify_statement
 from schemas import StatementVerdict
+from chapter_service import get_chapter
 
 app = FastAPI(
     title="BiblAI",
@@ -39,6 +41,7 @@ class HealthResponse(BaseModel):
     status: Literal["ok"]
 
 @app.api_route("/", methods=["GET", "HEAD"])
+@app.api_route("/index.html", methods=["GET", "HEAD"])
 def serve_index():
     return FileResponse(FRONTEND_DIR / "index.html")
 
@@ -70,3 +73,19 @@ def verify(request: VerifyRequest):
         raise HTTPException(status_code=502, detail=f"Verification failed: {e}")
 
     return verdict
+
+
+@app.get("/chapter")
+def get_bible_chapter(
+    book: str = Query(..., description="Book abbreviation e.g. 'Wj', 'Rdz', '1 Sm'"),
+    chapter: int = Query(..., ge=1, description="Chapter number e.g. 3")
+):
+    book_clean = book.strip()
+    if not book_clean:
+        raise HTTPException(status_code=400, detail="Book abbreviation cannot be empty.")
+
+    result = get_chapter(book_clean, chapter)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"Chapter {chapter} of book '{book_clean}' was not found.")
+
+    return result
