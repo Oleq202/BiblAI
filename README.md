@@ -116,8 +116,17 @@ Uses an independent LLM prompt and schema to evaluate:
 
 ```text
 BiblAI/
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # GitHub Actions automated lint & test pipeline
 ├── Dockerfile                  # Docker container definition
-├── requirements.txt            # Python dependencies
+├── requirements.txt            # Core production dependencies
+├── requirements-dev.txt        # Development and testing dependencies
+├── pyproject.toml              # Tool configurations (pytest, ruff)
+├── tests/                      # Automated unit and integration test suite
+│   ├── conftest.py             # Shared test fixtures and offline mock setups
+│   ├── unit/                   # In-memory unit tests (BM25, schemas, graph, tools, ingestion)
+│   └── integration/            # API endpoint integration tests
 ├── frontend/
 │   ├── index.html              # Web interface
 │   └── public/                 # Static assets and icons
@@ -143,7 +152,8 @@ BiblAI/
         │   ├── tools.py        # HyDE expansion, Hybrid retrieval (Qdrant + BM25 + RRF), and Gemini API calls
         │   └── schemas.py      # Pydantic models (StatementVerdict, Citation, Verdict)
         └── api/
-            └── main.py         # FastAPI routes and middleware
+            ├── main.py         # FastAPI routes and middleware
+            └── chapter_service.py # Biblical chapter text and navigation service
 ```
 
 ---
@@ -267,6 +277,34 @@ USE_CROSS_ENCODER=false
 ```bash
 python -m uvicorn backend.src.api.main:app --host 127.0.0.1 --port 8000 --reload
 ```
+
+---
+
+## Testing & CI/CD
+
+BiblAI includes an automated test suite covering unit logic, BM25 indexing, chapter navigation, LangGraph state machine execution, and FastAPI endpoints. All tests run offline without external API dependencies using deterministic mocks.
+
+### Run Tests Locally
+Install developer dependencies:
+```bash
+pip install -r requirements-dev.txt
+```
+
+Run test suite with coverage report:
+```bash
+pytest -v --cov=backend/src --cov-report=term-missing
+```
+
+Run linter:
+```bash
+ruff check .
+```
+
+### GitHub Actions CI/CD Pipeline
+Every pull request and push to `main` triggers `.github/workflows/ci.yml`:
+1. **Lint**: Code style & import validation using `ruff`.
+2. **Test**: Execution of 49+ unit & integration tests with coverage reporting across the agent, retrieval, API, and ingestion components.
+3. **Docker Build**: Automated validation that the container image builds cleanly.
 
 ---
 
