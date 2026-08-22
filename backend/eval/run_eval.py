@@ -1,8 +1,8 @@
 import json
 import sys
 import time
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE_DIR / "src" / "agent"))
@@ -35,27 +35,28 @@ if __name__ == "__main__":
         by_category[item["category"]]["total"] += 1
         by_category[item["category"]]["correct"] += is_correct
 
-        results.append({
-            "id": item["id"],
-            "statement": item["statement"],
-            "category": item["category"],
-            "expected_verdict": item["expected_verdict"],
-            "actual_verdict": verdict.verdict.value,
-            "correct": is_correct,
-            "confidence": verdict.confidence,
-            "citations": [{"ref": c.ref, "quote": c.quote, "relation": c.relation} for c in verdict.citations],
-            "reasoning": verdict.reasoning,
-        })
+        results.append(
+            {
+                "id": item["id"],
+                "statement": item["statement"],
+                "category": item["category"],
+                "expected_verdict": item["expected_verdict"],
+                "actual_verdict": verdict.verdict.value,
+                "correct": is_correct,
+                "confidence": verdict.confidence,
+                "citations": [{"ref": c.ref, "quote": c.quote, "relation": c.relation} for c in verdict.citations],
+                "reasoning": verdict.reasoning,
+            }
+        )
 
         status = "Correct" if is_correct else "Wrong"
         print(f"  {status} expected={item['expected_verdict']} actual={verdict.verdict.value}")
         time.sleep(1)
 
     with open(RESULTS_PATH, "w", encoding="utf-8") as f:
-        for r in results:
-            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+        f.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in results)
 
-    print(f"\n=== Overall: {correct}/{len(eval_items)} ({100*correct/len(eval_items):.1f}%) ===")
+    print(f"\n=== Overall: {correct}/{len(eval_items)} ({100 * correct / len(eval_items):.1f}%) ===")
     print("\n=== By category ===")
     for cat, stats in sorted(by_category.items()):
         pct = 100 * stats["correct"] / stats["total"]

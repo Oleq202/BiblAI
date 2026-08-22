@@ -1,8 +1,8 @@
-import os
-import json
-import time
 import hashlib
+import json
+import os
 import sys
+import time
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -90,7 +90,7 @@ podanego kontekstu)?"""
             if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
                 wait = max(20, 15 * (attempt + 1))
             else:
-                wait = 2 ** attempt
+                wait = 2**attempt
             print(f"  attempt {attempt + 1} failed ({e.__class__.__name__}: {e}), retrying in {wait}s...")
             time.sleep(wait)
 
@@ -105,18 +105,14 @@ if __name__ == "__main__":
     judged = []
     for item in eval_results:
         print(f"[{item['id']}] judging...")
-        verdict_judgment = judge(
-            item["statement"], item["actual_verdict"], item["citations"], item["reasoning"]
-        )
+        verdict_judgment = judge(item["statement"], item["actual_verdict"], item["citations"], item["reasoning"])
         judged.append({**item, "judge": verdict_judgment})
         time.sleep(1)
 
     out_path = BASE_DIR / "eval" / "results" / "llm_judge.jsonl"
     with open(out_path, "w", encoding="utf-8") as f:
-        for j in judged:
-            f.write(json.dumps(j, ensure_ascii=False) + "\n")
+        f.writelines(json.dumps(j, ensure_ascii=False) + "\n" for j in judged)
 
     agree_rate = sum(j["judge"]["verdict_is_correct"] for j in judged) / len(judged)
-    print(f"\nJudge agrees with verdict: {agree_rate*100:.1f}%")
+    print(f"\nJudge agrees with verdict: {agree_rate * 100:.1f}%")
     print(f"Results -> {out_path}")
-    

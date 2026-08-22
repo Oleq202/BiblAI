@@ -1,7 +1,7 @@
 import json
 import re
-from pathlib import Path
 from difflib import SequenceMatcher
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 VERSES_TXT = BASE_DIR / "data" / "raw" / "biblia_tysiaclecia.txt"
@@ -9,6 +9,7 @@ VERSES_TXT = BASE_DIR / "data" / "raw" / "biblia_tysiaclecia.txt"
 VERSE_LINE = re.compile(r"^(.+?)\s(\d+),(\d+)\s-\s(.*)$")
 
 QUOTE_MATCH_THRESHOLD = 0.7
+
 
 def normalize_ref(ref_str):
     m = re.match(r"^(.+?)\s+(\d+)[:,\.](\d+)$", ref_str.strip())
@@ -38,7 +39,7 @@ def check_citation(ref, quote, lookup):
 
     actual_text = lookup[norm_ref]
     ratio = SequenceMatcher(None, quote, actual_text).ratio()
-    contains = quote.strip(' ."\'') in actual_text or actual_text in quote
+    contains = quote.strip(" .\"'") in actual_text or actual_text in quote
 
     valid = contains or ratio >= QUOTE_MATCH_THRESHOLD
     return {"ref": ref, "ref_exists": True, "quote_match": round(ratio, 3), "valid": valid}

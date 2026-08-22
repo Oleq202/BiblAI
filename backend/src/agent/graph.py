@@ -1,29 +1,25 @@
 from typing import TypedDict
 
-from langgraph.graph import StateGraph, END
+from langgraph.graph import END, StateGraph
 
 try:
-    from .tools import (
-        retrieve,
-        multi_retrieve,
-        hybrid_retrieve,
-        expand_query,
-        rerank,
-        classify_support,
-        USE_CROSS_ENCODER,
-    )
     from .schemas import StatementVerdict
-except (ImportError, ValueError):
-    from tools import (
-        retrieve,
-        multi_retrieve,
-        hybrid_retrieve,
-        expand_query,
-        rerank,
-        classify_support,
+    from .tools import (
         USE_CROSS_ENCODER,
+        classify_support,
+        expand_query,
+        hybrid_retrieve,
+        rerank,
     )
+except (ImportError, ValueError):
     from schemas import StatementVerdict
+    from tools import (
+        USE_CROSS_ENCODER,
+        classify_support,
+        expand_query,
+        hybrid_retrieve,
+        rerank,
+    )
 
 DENSE_TOP_K = 15
 SPARSE_TOP_K = 15
@@ -80,7 +76,6 @@ def retrieve_and_rerank_node(state):
     }
 
 
-
 def check_relevance(state):
     threshold = 0.0 if USE_CROSS_ENCODER else 0.35
     best_score = max(state["rerank_scores"]) if state["rerank_scores"] else -999
@@ -113,12 +108,14 @@ def build_graph():
 
 def verify_statement(statement):
     app = build_graph()
-    result = app.invoke({
-        "statement": statement,
-        "expanded_queries": [],
-        "chunks": [],
-        "rerank_scores": [],
-        "retrieval_attempts": 0,
-        "verdict": None,
-    })
+    result = app.invoke(
+        {
+            "statement": statement,
+            "expanded_queries": [],
+            "chunks": [],
+            "rerank_scores": [],
+            "retrieval_attempts": 0,
+            "verdict": None,
+        }
+    )
     return result["verdict"]

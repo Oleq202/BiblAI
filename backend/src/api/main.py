@@ -4,17 +4,17 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(BASE_DIR / "src" / "agent"))
 sys.path.insert(0, str(BASE_DIR / "src" / "api"))
 
+from chapter_service import get_chapter
 from graph import verify_statement
 from schemas import StatementVerdict
-from chapter_service import get_chapter
 
 app = FastAPI(
     title="BiblAI",
@@ -34,20 +34,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class VerifyRequest(BaseModel):
     statement: str
 
+
 class HealthResponse(BaseModel):
     status: Literal["ok"]
+
 
 @app.api_route("/", methods=["GET", "HEAD"])
 @app.api_route("/index.html", methods=["GET", "HEAD"])
 def serve_index():
     return FileResponse(FRONTEND_DIR / "index.html")
 
+
 @app.api_route("/health", methods=["GET", "HEAD"], response_model=HealthResponse)
 def health():
     return {"status": "ok"}
+
 
 @app.api_route("/favicon.ico", methods=["GET", "HEAD"])
 def favicon():
@@ -69,6 +74,7 @@ def verify(request: VerifyRequest):
         verdict = verify_statement(statement)
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         raise HTTPException(status_code=502, detail=f"Verification failed: {e}")
 
@@ -78,7 +84,7 @@ def verify(request: VerifyRequest):
 @app.get("/chapter")
 def get_bible_chapter(
     book: str = Query(..., description="Book abbreviation e.g. 'Wj', 'Rdz', '1 Sm'"),
-    chapter: int = Query(..., ge=1, description="Chapter number e.g. 3")
+    chapter: int = Query(..., ge=1, description="Chapter number e.g. 3"),
 ):
     book_clean = book.strip()
     if not book_clean:

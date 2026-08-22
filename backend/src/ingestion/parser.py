@@ -1,6 +1,7 @@
 import re
 import sys
 from pathlib import Path
+
 import pymupdf
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -16,7 +17,7 @@ INPUT_PDF = BASE_DIR / "data" / "raw" / "1000.pdf"
 OUTPUT_TXT = BASE_DIR / "data" / "raw" / "biblia_tysiaclecia.txt"
 
 abbr_names = "|".join(sorted(VALID_ABBRS, key=len, reverse=True))
-abbr_pattern = re.compile(rf'^({abbr_names})\s+(\d+,\d+)$')
+abbr_pattern = re.compile(rf"^({abbr_names})\s+(\d+,\d+)$")
 
 
 def is_header_or_page(line: str) -> bool:
@@ -27,28 +28,35 @@ def is_header_or_page(line: str) -> bool:
         return True
     if s.startswith("(http://pismo-sw.iele.polsl.gliwice.pl)") or s.startswith("http://"):
         return True
-    if re.match(r'^Księga\s+.*', s, re.IGNORECASE):
+    if re.match(r"^Księga\s+.*", s, re.IGNORECASE):
         return True
-    if re.match(r'^(Pierwsza|Druga|Trzecia)\s+Księga.*', s, re.IGNORECASE):
+    if re.match(r"^(Pierwsza|Druga|Trzecia)\s+Księga.*", s, re.IGNORECASE):
         return True
-    if re.match(r'^Ewangelia\s+według.*', s, re.IGNORECASE):
+    if re.match(r"^Ewangelia\s+według.*", s, re.IGNORECASE):
         return True
-    if re.match(r'^List\s+(do|świętego|św\.).*', s, re.IGNORECASE):
+    if re.match(r"^List\s+(do|świętego|św\.).*", s, re.IGNORECASE):
         return True
-    if re.match(r'^Rozdział\s+\d+.*', s, re.IGNORECASE):
+    if re.match(r"^Rozdział\s+\d+.*", s, re.IGNORECASE):
         return True
-    if s in ["Spis treści", "Pismo Święte", "Nowego i Starego Testamentu", "Biblia Tysiąclecia c", "Wydawnictwo Pallottinum", "Skorowidz"]:
+    if s in [
+        "Spis treści",
+        "Pismo Święte",
+        "Nowego i Starego Testamentu",
+        "Biblia Tysiąclecia c",
+        "Wydawnictwo Pallottinum",
+        "Skorowidz",
+    ]:
         return True
-    if re.match(r'^(PISMO-SW|copyright|.*by Piotr Kłosowski|.*@iele\.polsl\.gliwice\.pl).*', s, re.IGNORECASE):
+    if re.match(r"^(PISMO-SW|copyright|.*by Piotr Kłosowski|.*@iele\.polsl\.gliwice\.pl).*", s, re.IGNORECASE):
         return True
     return False
 
 
 def clean_verse_text(text: str) -> str:
-    text = re.sub(r'\(http://pismo-sw\.iele\.polsl\.gliwice\.pl\)', '', text)
-    text = re.sub(r'Skorowidz.*$', '', text, flags=re.IGNORECASE)
-    text = re.sub(r'(\w+)-\s+(\w+)', r'\1\2', text)
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r"\(http://pismo-sw\.iele\.polsl\.gliwice\.pl\)", "", text)
+    text = re.sub(r"Skorowidz.*$", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"(\w+)-\s+(\w+)", r"\1\2", text)
+    text = re.sub(r"\s+", " ", text).strip()
     return text
 
 

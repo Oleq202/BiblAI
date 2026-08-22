@@ -1,9 +1,8 @@
-import os
-import json
-import time
-import hashlib
 import atexit
-import urllib.request
+import hashlib
+import json
+import os
+import time
 from pathlib import Path
 
 from google import genai
@@ -11,11 +10,11 @@ from google.genai import types
 from qdrant_client import QdrantClient
 
 try:
+    from .bm_25 import multi_bm25_retrieve
     from .schemas import StatementVerdict, Verdict
-    from .bm_25 import bm25_retrieve, multi_bm25_retrieve, get_bm25_index
 except (ImportError, ValueError):
+    from bm_25 import multi_bm25_retrieve
     from schemas import StatementVerdict, Verdict
-    from bm_25 import bm25_retrieve, multi_bm25_retrieve, get_bm25_index
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 QDRANT_DIR = BASE_DIR / "data" / "qdrant"
@@ -56,12 +55,14 @@ def _get_embed_model():
     global _embed_model
     if _embed_model is None:
         import torch
+
         torch.set_num_threads(1)
         try:
             torch.set_num_interop_threads(1)
         except RuntimeError:
             pass
         from sentence_transformers import SentenceTransformer
+
         _embed_model = SentenceTransformer(EMBED_MODEL_NAME)
     return _embed_model
 
@@ -69,6 +70,7 @@ def _get_embed_model():
 def _get_embedding(query: str) -> list[float]:
     embed_model = _get_embed_model()
     import torch
+
     with torch.inference_mode():
         return embed_model.encode([query], show_progress_bar=False).tolist()[0]
 
@@ -76,6 +78,7 @@ def _get_embedding(query: str) -> list[float]:
 def _get_embeddings(queries: list[str]) -> list[list[float]]:
     embed_model = _get_embed_model()
     import torch
+
     with torch.inference_mode():
         return embed_model.encode(queries, show_progress_bar=False).tolist()
 
@@ -92,6 +95,7 @@ def _get_reranker():
     global _reranker
     if _reranker is None:
         from sentence_transformers import CrossEncoder
+
         _reranker = CrossEncoder(RERANK_MODEL_NAME)
     return _reranker
 
@@ -114,10 +118,10 @@ def retrieve(query, top_k=5, return_scores=False):
 def multi_retrieve(queries: list[str], top_k_per_query: int = 15, return_scores: bool = False):
     if not queries:
         return ([], []) if return_scores else []
-    
+
     embeddings = _get_embeddings(queries)
     qdrant = _get_qdrant()
-    
+
     chunk_map = {}
     for q_text, emb in zip(queries, embeddings):
         results = qdrant.query_points(
@@ -129,11 +133,11 @@ def multi_retrieve(queries: list[str], top_k_per_query: int = 15, return_scores:
             cid = point.payload["chunk_id"]
             if cid not in chunk_map or point.score > chunk_map[cid][1]:
                 chunk_map[cid] = (point.payload, point.score)
-                
+
     sorted_items = sorted(chunk_map.values(), key=lambda x: x[1], reverse=True)
     payloads = [item[0] for item in sorted_items]
     scores = [item[1] for item in sorted_items]
-    
+
     if return_scores:
         return payloads, scores
     return payloads
@@ -155,16 +159,21 @@ def reciprocal_rank_fusion(ranked_lists, weights=None, k=60, top_n=20):
             rrf_scores[chunk_id] = rrf_scores.get(chunk_id, 0.0) + score
 
     sorted_chunk_ids = sorted(rrf_scores.keys(), key=lambda cid: rrf_scores[cid], reverse=True)
-    
-    fused_results = [
-        (chunk_by_id[cid], rrf_scores[cid])
-        for cid in sorted_chunk_ids[:top_n]
-    ]
+
+    fused_results = [(chunk_by_id[cid], rrf_scores[cid]) for cid in sorted_chunk_ids[:top_n]]
     return fused_results
 
 
-def hybrid_retrieve(queries, top_k_dense=15, top_k_sparse=15, fused_top_n=20,
-    dense_weight=1.0, sparse_weight=1.0, rrf_k=60, return_scores=False):
+def hybrid_retrieve(
+    queries,
+    top_k_dense=15,
+    top_k_sparse=15,
+    fused_top_n=20,
+    dense_weight=1.0,
+    sparse_weight=1.0,
+    rrf_k=60,
+    return_scores=False,
+):
     if not queries:
         return ([], []) if return_scores else []
 
@@ -195,7 +204,7 @@ def rerank(query, chunks, scores=None):
         scores = reranker.predict(pairs)
         reranked = sorted(zip(chunks, scores), key=lambda x: x[1], reverse=True)
         return reranked
-    
+
     if scores is not None and len(scores) == len(chunks):
         return sorted(zip(chunks, scores), key=lambda x: x[1], reverse=True)
     return [(chunk, 1.0) for chunk in chunks]
@@ -247,7 +256,7 @@ def expand_query(statement: str, max_retries=3, use_cache=True) -> list[str]:
             client = _get_client()
             response = client.models.generate_content(
                 model=GEMINI_MODEL,
-                contents=f"Stwierdzenie użytkownika: \"{statement}\"",
+                contents=f'Stwierdzenie użytkownika: "{statement}"',
                 config=types.GenerateContentConfig(
                     system_instruction=EXPANSION_SYSTEM_PROMPT,
                     response_mime_type="application/json",
@@ -262,7 +271,7 @@ def expand_query(statement: str, max_retries=3, use_cache=True) -> list[str]:
                 seen = set()
                 combined = []
                 for q in [statement] + gen_queries:
-                    clean_q = q.strip().strip('"\'')
+                    clean_q = q.strip().strip("\"'")
                     if clean_q and clean_q.lower() not in seen:
                         seen.add(clean_q.lower())
                         combined.append(clean_q)
@@ -275,17 +284,16 @@ def expand_query(statement: str, max_retries=3, use_cache=True) -> list[str]:
                     print(f"[expand_query] Cache write error: {e}", flush=True)
             return queries
         except Exception as e:
-            print(f"[expand_query] Attempt {attempt+1} failed: {e}", flush=True)
+            print(f"[expand_query] Attempt {attempt + 1} failed: {e}", flush=True)
             err_msg = str(e)
             if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
                 wait = 2 * (attempt + 1)
             else:
-                wait = 2 ** attempt
+                wait = 2**attempt
             time.sleep(wait)
 
     print(f"[expand_query] Fallback to original query: {statement}", flush=True)
     return queries
-
 
 
 VERDICT_RESPONSE_SCHEMA = {
@@ -338,9 +346,7 @@ def classify_support(statement, retrieved_chunks, max_retries=5, use_cache=True)
     if use_cache and cache_path.exists():
         return StatementVerdict.model_validate_json(cache_path.read_text(encoding="utf-8"))
 
-    context = "\n\n".join(
-        f"[{chunk['verse_refs']}]\n{chunk['text']}" for chunk in retrieved_chunks
-    )
+    context = "\n\n".join(f"[{chunk['verse_refs']}]\n{chunk['text']}" for chunk in retrieved_chunks)
 
     user_message = f"""Stwierdzenie do sprawdzenia:
 "{statement}"
@@ -384,7 +390,7 @@ niewspomniane wprost w tych fragmentach."""
             if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
                 wait = 2 * (attempt + 1)
             else:
-                wait = 2 ** attempt
+                wait = 2**attempt
             time.sleep(wait)
 
     raise last_error

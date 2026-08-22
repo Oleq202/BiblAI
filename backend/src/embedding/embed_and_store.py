@@ -1,12 +1,12 @@
-import os
 import json
+import os
 import time
 from pathlib import Path
 
 from google import genai
 from google.genai import types
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct
+from qdrant_client.models import Distance, PointStruct, VectorParams
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 CHUNKS_PATH = BASE_DIR / "data" / "processed" / "chunks.jsonl"
@@ -79,7 +79,7 @@ def embed_and_store():
             except Exception as e:
                 err_str = str(e)
                 wait_time = 25 if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str else (3 * (attempt + 1))
-                print(f"  [Attempt {attempt+1}] Rate limit or error at index {i}: waiting {wait_time}s...")
+                print(f"  [Attempt {attempt + 1}] Rate limit or error at index {i}: waiting {wait_time}s...")
                 time.sleep(wait_time)
 
         if embeddings is None:
@@ -108,12 +108,12 @@ def embed_and_store():
         print(f"  Processed {min(i + BATCH_SIZE, total_chunks)}/{total_chunks}")
         time.sleep(1.0)
 
-
     count = client_qdrant.count(COLLECTION_NAME).count
     print(f"Done. Collection '{COLLECTION_NAME}' has {count} points.")
     client_qdrant.close()
 
     import shutil
+
     final_dir = BASE_DIR / "data" / "qdrant"
     try:
         shutil.rmtree(final_dir, ignore_errors=True)

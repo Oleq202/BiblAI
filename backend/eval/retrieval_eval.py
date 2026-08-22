@@ -8,7 +8,7 @@ if hasattr(sys.stdout, "reconfigure"):
 BASE_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BASE_DIR / "src" / "agent"))
 
-from tools import retrieve, rerank
+from tools import rerank, retrieve
 
 EVAL_SET_PATH = BASE_DIR / "eval" / "eval_set.jsonl"
 RESULTS_PATH = BASE_DIR / "eval" / "results" / "retrieval_eval.jsonl"
@@ -53,25 +53,32 @@ if __name__ == "__main__":
         hits_at_rerank_top5 += rerank_hit
 
         status = "[HIT]" if rerank_hit else ("[BI_ONLY]" if bi_encoder_hit else "[MISS]")
-        print(f"  {status} [{item['id']}] expected={expected} "
-              f"bi_encoder_hit={bi_encoder_hit} rerank_top5_hit={rerank_hit}")
+        print(
+            f"  {status} [{item['id']}] expected={expected} "
+            f"bi_encoder_hit={bi_encoder_hit} rerank_top5_hit={rerank_hit}"
+        )
 
-        results.append({
-            "id": item["id"],
-            "statement": item["statement"],
-            "expected_ref_contains": expected,
-            "bi_encoder_top10_hit": bi_encoder_hit,
-            "rerank_top5_hit": rerank_hit,
-        })
+        results.append(
+            {
+                "id": item["id"],
+                "statement": item["statement"],
+                "expected_ref_contains": expected,
+                "bi_encoder_top10_hit": bi_encoder_hit,
+                "rerank_top5_hit": rerank_hit,
+            }
+        )
 
     RESULTS_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(RESULTS_PATH, "w", encoding="utf-8") as f:
-        for r in results:
-            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+        f.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in results)
 
     n = len(testable)
-    print(f"\n=== Retrieval recall @ bi-encoder top-{RETRIEVE_TOP_K}: "
-          f"{hits_at_bi_encoder}/{n} ({100*hits_at_bi_encoder/n:.1f}%) ===")
-    print(f"=== Retrieval recall @ rerank top-{RERANK_TOP_K}: "
-          f"{hits_at_rerank_top5}/{n} ({100*hits_at_rerank_top5/n:.1f}%) ===")
+    print(
+        f"\n=== Retrieval recall @ bi-encoder top-{RETRIEVE_TOP_K}: "
+        f"{hits_at_bi_encoder}/{n} ({100 * hits_at_bi_encoder / n:.1f}%) ==="
+    )
+    print(
+        f"=== Retrieval recall @ rerank top-{RERANK_TOP_K}: "
+        f"{hits_at_rerank_top5}/{n} ({100 * hits_at_rerank_top5 / n:.1f}%) ==="
+    )
     print(f"\nResults -> {RESULTS_PATH}")

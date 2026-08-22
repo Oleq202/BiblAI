@@ -1,5 +1,4 @@
 import re
-import sys
 from pathlib import Path
 from typing import TypedDict
 
@@ -94,7 +93,10 @@ def _init_index():
             for ch in sorted_chapters:
                 _ordered_chapters_list.append((abbr, ch))
 
-    print(f"[ChapterService] Indexed {len(_ordered_chapters_list)} chapters across {len(_chapters_data)} books", flush=True)
+    print(
+        f"[ChapterService] Indexed {len(_ordered_chapters_list)} chapters across {len(_chapters_data)} books",
+        flush=True,
+    )
 
 
 def normalize_book_abbr(book):
