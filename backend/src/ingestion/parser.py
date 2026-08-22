@@ -69,8 +69,7 @@ def clean_verse_text(text: str) -> str:
 def extract_lines(pdf_path: Path):
     if pymupdf is None:
         raise ImportError(
-            "PyMuPDF is required to extract lines from a PDF file. "
-            "Please install it via `pip install pymupdf`."
+            "PyMuPDF is required to extract lines from a PDF file. Please install it via `pip install pymupdf`."
         )
     doc = pymupdf.open(str(pdf_path))
     raw_lines = []
