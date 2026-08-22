@@ -2,7 +2,13 @@ import re
 import sys
 from pathlib import Path
 
-import pymupdf
+try:
+    import pymupdf
+except ImportError:
+    try:
+        import fitz as pymupdf
+    except ImportError:
+        pymupdf = None
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 if str(BASE_DIR) not in sys.path:
@@ -61,6 +67,11 @@ def clean_verse_text(text: str) -> str:
 
 
 def extract_lines(pdf_path: Path):
+    if pymupdf is None:
+        raise ImportError(
+            "PyMuPDF is required to extract lines from a PDF file. "
+            "Please install it via `pip install pymupdf`."
+        )
     doc = pymupdf.open(str(pdf_path))
     raw_lines = []
 

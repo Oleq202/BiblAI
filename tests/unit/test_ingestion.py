@@ -1,6 +1,9 @@
+from unittest.mock import MagicMock
+
+import parser
 import pytest
 from chunker import Verse, chunk_verses
-from parser import clean_verse_text, is_header_or_page
+from parser import clean_verse_text, extract_lines, is_header_or_page
 
 
 @pytest.mark.unit
@@ -62,3 +65,46 @@ class TestIngestion:
         cleaned = clean_verse_text(dirty)
         assert "(http" not in cleaned
         assert cleaned == "Na początku Bóg stworzył niebo i ziemię."
+
+    def test_extract_lines_missing_pymupdf(self, monkeypatch, tmp_path):
+        monkeypatch.setattr(parser, "pymupdf", None)
+        dummy_pdf = tmp_path / "dummy.pdf"
+        dummy_pdf.write_bytes(b"%PDF-1.4 dummy")
+        with pytest.raises(ImportError, match="PyMuPDF is required"):
+            extract_lines(dummy_pdf)
+
+    def test_extract_lines_mocked(self, monkeypatch, tmp_path):
+        mock_doc = [
+            MagicMock(
+                get_text=MagicMock(
+                    return_value={
+                        "blocks": [
+                            {
+                                "lines": [
+                                    {
+                                        "spans": [
+                                            {"bbox": [10, 0, 50, 10], "text": "Rdz 1,1"},
+                                        ]
+                                    },
+                                    {
+                                        "spans": [
+                                            {"bbox": [10, 0, 50, 10], "text": "Na początku stworzył Bóg niebo."},
+                                        ]
+                                    },
+                                ]
+                            }
+                        ]
+                    }
+                )
+            )
+        ]
+
+        mock_pymupdf = MagicMock()
+        mock_pymupdf.open.return_value = mock_doc
+        monkeypatch.setattr(parser, "pymupdf", mock_pymupdf)
+
+        dummy_pdf = tmp_path / "dummy.pdf"
+        dummy_pdf.write_bytes(b"%PDF-1.4 dummy")
+        result = extract_lines(dummy_pdf)
+        assert len(result) == 1
+        assert "Rdz 1,1 - Na początku stworzył Bóg niebo." in result[0]
