@@ -3,29 +3,98 @@
 {"id": "sup_03", "statement": "Jezus zamienił wodę w wino na weselu w Kanie.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "J 2"}
 {"id": "sup_04", "statement": "Mojżesz wyprowadził Izraelitów z Egiptu.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Wj"}
 {"id": "sup_05", "statement": "Dawid pokonał Goliata.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "1 Sm 17"}
-
+{"id": "sup_06", "statement": "Jezus narodził się w Betlejem.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Mt 2"}
+{"id": "sup_07", "statement": "Noe zbudował arkę z rozkazu Boga.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Rdz 6"}
+{"id": "sup_08", "statement": "Jonasz spędził trzy dni i trzy noce we wnętrznościach wielkiej ryby.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Jon 2"}
+{"id": "sup_09", "statement": "Bóg przekazał Mojżeszowi tablice z przykazaniami na górze Synaj.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Wj 31"}
+{"id": "sup_10", "statement": "Jezus nakarmił pięć tysięcy ludzi kilkoma chlebami i rybami.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Mt 14"}
+{"id": "sup_11", "statement": "Łazarz został wskrzeszony przez Jezusa z martwych.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "J 11"}
+{"id": "sup_12", "statement": "Judasz Iskariota zdradził Jezusa za trzydzieści srebrników.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Mt 26"}
+{"id": "sup_13", "statement": "Jezus został ochrzczony w rzece Jordan przez Jana Chrzciciela.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Mt 3"}
+{"id": "sup_14", "statement": "Salomon wybudował świątynię w Jerozolimie.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "1 Krl 6"}
+{"id": "sup_15", "statement": "Bóg zawarł przymierze z Abrahamem i obiecał mu liczne potomstwo.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Rdz 15"}
+{"id": "sup_16", "statement": "Samson stracił swoją niezwykłą siłę po obcięciu włosów przez Dalilę.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Sdz 16"}
+{"id": "sup_17", "statement": "Jezus zmartwychwstał trzeciego dnia po ukrzyżowaniu.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Łk 24"}
+{"id": "sup_18", "statement": "Piotr zaparł się Jezusa trzy razy przed pianiem koguta.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Mt 26"}
+{"id": "sup_19", "statement": "Wody Morza Czerwonego rozstąpiły się przed uciekającymi Izraelitami.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Wj 14"}
+{"id": "sup_20", "statement": "Daniel został wrzucony do jaskini lwów za modlitwę do swojego Boga.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Dn 6"}
+{"id": "sup_21", "statement": "Szczepan był pierwszym chrześcijańskim męczennikiem ukamienowanym za wiarę.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Dz 7"}
+{"id": "sup_22", "statement": "Saul nawrócił się w drodze do Damaszku i przyjął imię Paweł.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Dz 9"}
+{"id": "sup_23", "statement": "Jerycho zostało zdobyte po tym, jak mury runęły na dźwięk trąb.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Joz 6"}
+{"id": "sup_24", "statement": "Elizeusz wskrzesił syna kobiety z Szunem.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "2 Krl 4"}
+{"id": "sup_25", "statement": "Jezus uciszył burzę na jeziorze jednym rozkazem.", "category": "supported_explicit", "expected_verdict": "directly_supported", "expected_ref_contains": "Mk 4"}
 {"id": "con_01", "statement": "Jezus urodził się w Rzymie.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Łk 2"}
 {"id": "con_02", "statement": "Bóg stworzył świat w ciągu jednego dnia.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Rdz 1"}
-{"id": "con_03", "statement": "Kain był starszym bratem, którego zabił Abel.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Rdz 4"}
+{"id": "con_03", "statement": "Kain był młodszym bratem, którego zabił Abel.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Rdz 4"}
 {"id": "con_04", "statement": "Noe zbudował arkę, by przetrwać pożar.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Rdz 6"}
 {"id": "con_05", "statement": "Piotr nigdy nie zaparł się Jezusa.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Mt 26"}
-
+{"id": "con_06", "statement": "Goliat pokonał Dawida mieczem.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "1 Sm 17"}
+{"id": "con_07", "statement": "Mojżesz osobiście wprowadził Izraelitów do Ziemi Obiecanej i został ich królem.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Pwt 34"}
+{"id": "con_08", "statement": "Judasz wydał Jezusa za sto sztuk złota.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Mt 26"}
+{"id": "con_09", "statement": "Jonasz uciekał przed Bogiem statkiem płynącym do Niniwy.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Jon 1"}
+{"id": "con_10", "statement": "Jezus został ochrzczony w rzece Nil przez apostoła Piotra.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Mt 3"}
+{"id": "con_11", "statement": "Adam został stworzony z żebra Ewy.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Rdz 2"}
+{"id": "con_12", "statement": "Wieża Babel została zbudowana w Egipcie z rozkazu faraona.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Rdz 11"}
+{"id": "con_13", "statement": "Jezus napisał własnoręcznie cztery Ewangelie.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "J 21"}
+{"id": "con_14", "statement": "Samson był znany ze swojej słabości i braku siły fizycznej.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Sdz 15"}
+{"id": "con_15", "statement": "Arka Przymierza została zbudowana przez króla Heroda.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Wj 25"}
+{"id": "con_16", "statement": "Łazarz zmarł i nigdy więcej nie powrócił do życia.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "J 11"}
+{"id": "con_17", "statement": "Eliasz wstąpił do nieba na grzbiecie wielbłąda.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "2 Krl 2"}
+{"id": "con_18", "statement": "Mędrcy ze Wschodu przybyli do Nazaretu, by złożyć hołd Herodowi.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Mt 2"}
+{"id": "con_19", "statement": "Bóg zesłał na Egipt tylko jedną plagę, którą były żaby.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Wj 7"}
+{"id": "con_20", "statement": "Apostoł Paweł od samego początku był jednym z dwunastu najbliższych uczniów Jezusa za Jego ziemskiego życia.", "category": "contradicted", "expected_verdict": "directly_contradicted", "expected_ref_contains": "1 Kor 15"}
 {"id": "int_01", "statement": "Antykoncepcja jest grzechem.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
-{"id": "int_02", "statement": "Kara śmierci jest zgodna z wolą Boga.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
-{"id": "int_03", "statement": "Chrzest niemowląt jest wymagany przez Biblię.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
-{"id": "int_04", "statement": "Biblia zakazuje spożywania alkoholu.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
-{"id": "int_05", "statement": "Kobiety nie mogą pełnić funkcji przywódczych w Kościele.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
-
+{"id": "int_02", "statement": "Kara śmierci jest zgodna z wolą Boga we współczesnym świecie.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_03", "statement": "Chrzest niemowląt jest wyraźnie nakazany w Ewangeliach.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_04", "statement": "Biblia całkowicie zakazuje spożywania jakiegokolwiek alkoholu.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_05", "statement": "Kobiety nie mogą pełnić żadnych funkcji przywódczych w społeczeństwie.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_06", "statement": "Czyściec jest opisany szczegółowo z podaniem czasu trwania kar.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_07", "statement": "Demokracja parlamentarna jest jedynym ustrojem popieranym przez Pismo Święte.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_08", "statement": "Papież posiada dogmat o nieomylności zdefiniowany w Liście do Rzymian.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_09", "statement": "Kapłani muszą bezwzględnie zachowywać celibat według nakazu Jezusa.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_10", "statement": "Palenie tytoniu jest ciężkim grzechem opisanym w Księdze Kapłańskiej.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_11", "statement": "In vitro jest wprost zakazane przez przepisy Prawa Mojżeszowego.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_12", "statement": "Transplantacja narządów ludzkich jest sprzeczna z wolą Boga.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_13", "statement": "Kreacjonizm młodej Ziemi jest jedyną dopuszczalną interpretacją biblijną.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_14", "statement": "Handel kryptowalutami narusza prawo biblijne.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
+{"id": "int_15", "statement": "Słuchanie muzyki świeckiej jest bezpośrednio potępione przez apostoła Pawła.", "category": "interpretive", "expected_verdict": "not_directly_stated"}
 {"id": "cmp_01", "statement": "Jezus uzdrawiał chorych i wypędzał złe duchy, co w tradycyjnym rozumieniu jest niemożliwe dla człowieka.", "category": "compound", "expected_verdict": "not_directly_stated"}
-{"id": "cmp_02", "statement": "Salomon był mądrym królem, który nigdy nie zgrzeszył.", "category": "compound", "expected_verdict": "not_directly_stated"}
-{"id": "cmp_03", "statement": "Dawid napisał wszystkie Psalmy jako doskonały wzór pobożności.", "category": "compound", "expected_verdict": "not_directly_stated"}
-
+{"id": "cmp_02", "statement": "Salomon był mądrym królem, który nigdy w życiu nie zgrzeszył ani nie czcił obcych bóstw.", "category": "compound", "expected_verdict": "not_directly_stated"}
+{"id": "cmp_03", "statement": "Dawid napisał wszystkie sto pięćdziesiąt Psalmów jako doskonały i bezgrzeszny władca.", "category": "compound", "expected_verdict": "not_directly_stated"}
+{"id": "cmp_04", "statement": "Mojżesz wyprowadził lud z Egiptu, używając skomplikowanych mechanizmów hydraulicznych do rozstąpienia morza.", "category": "compound", "expected_verdict": "not_directly_stated"}
+{"id": "cmp_05", "statement": "Jezus narodził się w Betlejem za panowania Cezara Augusta, a data 25 grudnia jest dokładnie podana w Ewangelii.", "category": "compound", "expected_verdict": "not_directly_stated"}
+{"id": "cmp_06", "statement": "Noe uratował zwierzęta na arce, a po potopie założył pierwszą akademię nauk przyrodniczych.", "category": "compound", "expected_verdict": "not_directly_stated"}
+{"id": "cmp_07", "statement": "Piotr został powołany na apostoła, a następnie napisał tekst Credo Nicejskiego.", "category": "compound", "expected_verdict": "not_directly_stated"}
+{"id": "cmp_08", "statement": "Paweł głosił Ewangelię w Atenach na Areopagu i został wybrany burmistrzem tego miasta.", "category": "compound", "expected_verdict": "not_directly_stated"}
+{"id": "cmp_09", "statement": "Józef Egipski wyjaśnił sny faraona o krowach i wprowadził w Egipcie podatek dochodowy od korporacji.", "category": "compound", "expected_verdict": "not_directly_stated"}
+{"id": "cmp_10", "statement": "Jezus nakarmił tłumy na pustkowiu, po czym polecił uczniom założyć sieć piekarni w Galilei.", "category": "compound", "expected_verdict": "not_directly_stated"}
 {"id": "irr_01", "statement": "Kwantowa mechanika silnika odrzutowego jest opisana w Biblii.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
 {"id": "irr_02", "statement": "Internet został przewidziany przez proroków biblijnych.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
-{"id": "irr_03", "statement": "Biblia opisuje zasady gry w szachy.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
-
-{"id": "obs_02", "statement": "Ozeasz poślubił nierządnicę na polecenie Boga.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "Oz 1"}
-{"id": "obs_03", "statement": "Elizeusz sprawił, że siekiera wypłynęła na powierzchnię wody.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "2 Krl 6"}
-
+{"id": "irr_03", "statement": "Biblia opisuje szczegółowe zasady gry w szachy.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+{"id": "irr_04", "statement": "Sztuczna inteligencja i sieci neuronowe są wymienione w Księdze Przysłów.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+{"id": "irr_05", "statement": "Dinozaury wyginęły w wyniku uderzenia asteroidy według Apokalipsy św. Jana.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+{"id": "irr_06", "statement": "Wyprawa na Księżyc statku Apollo 11 jest opisana w Księdze Ezechiela.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+{"id": "irr_07", "statement": "Smartfony i komputery kwantowe były używane na dworze króla Salomona.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+{"id": "irr_08", "statement": "Zasada zachowania energii i teoria względności Einsteina znajdują się w Księdze Koheleta.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+{"id": "irr_09", "statement": "Reguły gry w piłkę nożną zostały ustanowione przez apostoła Tomasza.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+{"id": "irr_10", "statement": "Pociągi magnetyczne i autostrady są przepowiedziane w Księdze Izajasza.", "category": "unrelated", "expected_verdict": "not_directly_stated"}
+{"id": "obs_01", "statement": "Ozeasz poślubił kobietę cudzołożną na wyraźne polecenie Boga.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "Oz 1"}
+{"id": "obs_02", "statement": "Elizeusz sprawił, że żelazna siekiera wypłynęła na powierzchnię wody.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "2 Krl 6"}
+{"id": "obs_03", "statement": "Szamgar zabił sześciuset Filistynów ościeniem do poganiania wołów.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "Sdz 3"}
+{"id": "obs_04", "statement": "Ehud był leworęczny i zabił króla Moabu Eglona mieczem ukrytym pod szatą.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "Sdz 3"}
+{"id": "obs_05", "statement": "Oślisa Balaama przemówiła do niego ludzkim głosem, widząc Anioła Pańskiego.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "Lb 22"}
+{"id": "obs_06", "statement": "W czasie modlitwy Jozuego słońce i księżyc zatrzymały się nad Gibeonem.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "Joz 10"}
+{"id": "obs_07", "statement": "Apostoł Paweł został ukąszony przez żmiję na wyspie Malcie i nie poniósł żadnej szkody.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "Dz 28"}
+{"id": "obs_08", "statement": "Młodzieniec Eutych zasnął podczas mowy Pawła, wypadł z trzeciego piętra i został przywrócony do życia.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "Dz 20"}
+{"id": "obs_09", "statement": "Królowa Szeby przybyła do Salomona, aby doświadczyć go trudnymi pytaniami i podziwiać jego mądrość.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "1 Krl 10"}
+{"id": "obs_10", "statement": "Prorok Agabos przewiązał się pasem Pawła, przepowiadając jego uwięzienie w Jerozolimie.", "category": "obscure", "expected_verdict": "directly_supported", "expected_ref_contains": "Dz 21"}
 {"id": "trk_01", "statement": "Bóg powiedział, że miłość do pieniędzy jest źródłem wszelkiego dobra.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "1 Tm 6"}
-{"id": "trk_02", "statement": "Wąska brama prowadzi na zatracenie, a szeroka do życia.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Mt 7"}
+{"id": "trk_02", "statement": "Wąska brama prowadzi na zatracenie, a szeroka droga prowadzi do życia wiecznego.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Mt 7"}
+{"id": "trk_03", "statement": "Błogosławieni pyszni i aroganccy, albowiem oni posiądą królestwo niebieskie.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Mt 5"}
+{"id": "trk_04", "statement": "Kto mieczem wojuje, ten od miecza nigdy nie ginie lecz zdobywa chwałę.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Mt 26"}
+{"id": "trk_05", "statement": "Początkiem mądrości jest pycha i lekceważenie Pana.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Prz 9"}
+{"id": "trk_06", "statement": "Lepiej jest dawać niż brać – to stwierdzenie jest potępione przez apostoła Pawła.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Dz 20"}
+{"id": "trk_07", "statement": "Kto kocha swoje życie, zachowa je na wieki, a kto nienawidzi, straci je bezpowrotnie.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "J 12"}
+{"id": "trk_08", "statement": "Bóg nie umiłował świata, lecz zesłał Syna jedynie po to, by świat potępić.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "J 3"}
+{"id": "trk_09", "statement": "Wiara bez uczynków jest żywa i w pełni wystarczająca do zbawienia według Listu Jakuba.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "Jk 2"}
+{"id": "trk_10", "statement": "Bóg jest Bogiem zamieszania i niezgody, a nie pokoju.", "category": "near_miss", "expected_verdict": "directly_contradicted", "expected_ref_contains": "1 Kor 14"}

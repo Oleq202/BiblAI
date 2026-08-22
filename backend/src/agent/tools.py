@@ -287,7 +287,7 @@ def expand_query(statement: str, max_retries=3, use_cache=True) -> list[str]:
             print(f"[expand_query] Attempt {attempt + 1} failed: {e}", flush=True)
             err_msg = str(e)
             if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
-                wait = 2 * (attempt + 1)
+                wait = max(20, 15 * (attempt + 1))
             else:
                 wait = 2**attempt
             time.sleep(wait)
@@ -388,7 +388,7 @@ niewspomniane wprost w tych fragmentach."""
             last_error = e
             err_msg = str(e)
             if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
-                wait = 2 * (attempt + 1)
+                wait = max(20, 15 * (attempt + 1))
             else:
                 wait = 2**attempt
             time.sleep(wait)
