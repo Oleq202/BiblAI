@@ -15,3 +15,7 @@ backend/data/raw/1000.pdf
 backend/data/bm25_index.pkl
 backend/eval/results/
 *.log
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/

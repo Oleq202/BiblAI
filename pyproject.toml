@@ -1,0 +1,40 @@
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+exclude = [
+    ".venv",
+    ".git",
+    "__pycache__",
+    "backend/data",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+    "E402", # module level import not at top of file (needed for sys.path adjustments)
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+pythonpath = [
+    ".",
+    "backend/src",
+    "backend/src/agent",
+    "backend/src/api",
+    "backend/src/ingestion",
+    "backend/src/embedding",
+]
+markers = [
+    "unit: Unit tests that run isolated in-memory",
+    "integration: Integration tests for API endpoints and component interactions",
+]
+addopts = "-ra -q"
