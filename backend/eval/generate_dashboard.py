@@ -11,11 +11,12 @@ from collections import defaultdict
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[1]
+ROOT_DIR = BASE_DIR.parent
 RESULTS_DIR = BASE_DIR / "eval" / "results"
 ACCURACY_PATH = RESULTS_DIR / "verdict_accuracy.jsonl"
 RETRIEVAL_PATH = RESULTS_DIR / "retrieval_eval.jsonl"
 JUDGE_PATH = RESULTS_DIR / "llm_judge.jsonl"
-OUTPUT_HTML_PATH = BASE_DIR / "eval" / "dashboard.html"
+OUTPUT_HTML_PATH = ROOT_DIR / "dashboard.html"
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -852,7 +853,7 @@ def generate_dashboard_html(metrics: dict) -> str:
     return template
 
 
-def generate_dashboard():
+def generate_dashboard(output_path: Path | None = None):
     accuracy_data = load_jsonl(ACCURACY_PATH)
     retrieval_data = load_jsonl(RETRIEVAL_PATH)
     judge_data = load_jsonl(JUDGE_PATH)
@@ -863,9 +864,10 @@ def generate_dashboard():
     metrics = compute_metrics(accuracy_data, retrieval_data, judge_data)
     html_content = generate_dashboard_html(metrics)
 
-    OUTPUT_HTML_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_HTML_PATH.write_text(html_content, encoding="utf-8")
-    print(f"[Dashboard] Successfully generated dashboard at: {OUTPUT_HTML_PATH}")
+    target_path = output_path or OUTPUT_HTML_PATH
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(html_content, encoding="utf-8")
+    print(f"[Dashboard] Successfully generated dashboard at: {target_path}")
     print(
         f"[Dashboard] Overall Accuracy: {metrics['accuracy_pct']}% ({metrics['correct_count']}/{metrics['total_claims']})"
     )

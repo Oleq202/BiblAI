@@ -121,3 +121,10 @@ class TestEvalDashboard:
         assert "BiblAI - Raport Ewaluacji" in html_str
         assert "Macierz Pomyłek" in html_str
         assert "Eksplorator Zbadanych Przypadków Testowych" in html_str
+
+    def test_generate_dashboard_file(self, tmp_path):
+        from backend.eval.generate_dashboard import generate_dashboard
+        out = tmp_path / "dashboard.html"
+        generate_dashboard(output_path=out)
+        assert out.exists()
+        assert "<!DOCTYPE html>" in out.read_text(encoding="utf-8")

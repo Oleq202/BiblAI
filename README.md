@@ -348,7 +348,7 @@ Generate visual benchmark dashboard:
 ```bash
 python backend/eval/generate_dashboard.py
 ```
-Open `backend/eval/dashboard.html` in any web browser for interactive visualization of accuracy, confusion matrix, Recall@K, and claim-by-claim LLM Judge inspectability.
+Open `dashboard.html` in any web browser for interactive visualization of accuracy, confusion matrix, Recall@K, and claim-by-claim LLM Judge inspectability.
 
 ---
 
